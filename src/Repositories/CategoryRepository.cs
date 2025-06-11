@@ -5,58 +5,35 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazeBuy.Repositories
 {
-    public class CategoryRepository : ICategoryRepository
+    internal sealed class CategoryRepository(ApplicationDbContext db) : ICategoryRepository
     {
-        private readonly ApplicationDbContext _db;
+        private readonly ApplicationDbContext _db = db;
 
-        public CategoryRepository(ApplicationDbContext db)
+        public async Task<IReadOnlyList<Category>> GetAllCategoriesAsync(CancellationToken ct = default) =>
+            await _db.Categories
+                .AsNoTracking()
+                .OrderBy(c => c.Name)
+                .ToListAsync(ct);
+
+        public Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default) =>
+            _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct);
+
+        public Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default) =>
+            _db.Categories.AnyAsync(c => c.Id == id, ct);
+
+        public async Task CreateCategoryAsync(Category entity, CancellationToken ct = default) =>
+            await _db.Categories.AddAsync(entity, ct);
+
+        public Task UpdateCategoryAsync(Category entity)
         {
-            _db = db;
+            _db.Categories.Update(entity);
+            return Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        public Task DeleteCategoryAsync(Category entity)
         {
-            return await _db.Categories.ToListAsync();
-        }
-
-        public async Task<Category> GetCategoryByIdAsync(int id)
-        {
-            return (await _db.Categories.FirstOrDefaultAsync(u => u.Id == id));
-        }
-
-
-        public async Task<Category> CreateCategoryAsync(Category obj)
-        {
-            await _db.Categories.AddAsync(obj);
-            await _db.SaveChangesAsync();
-            return obj;
-        }
-
-        public async Task<Category> UpdateCategoryAsync(Category obj)
-        {
-            var objFormDb = await _db.Categories.FirstOrDefaultAsync(u => u.Id == obj.Id);
-            if (objFormDb is not null)
-            {
-                objFormDb.Name = obj.Name;
-                _db.Categories.Update(objFormDb);
-                await _db.SaveChangesAsync();
-                return objFormDb;
-            }
-
-            return obj;
-        }
-
-        public async Task<bool> DeleteCategoryAsync(int id)
-        {
-            var obj = await _db.Categories.FirstOrDefaultAsync(u => u.Id == id);
-            if (obj == null)
-            {
-                return false;
-            }
-
-            _db.Categories.Remove(obj);
-            await _db.SaveChangesAsync();
-            return true;
+            _db.Categories.Remove(entity);
+            return Task.CompletedTask;
         }
     }
 }

@@ -4,10 +4,12 @@ namespace BlazeBuy.Repositories.Interfaces
 {
     public interface ICategoryRepository
     {
-        public Task<IEnumerable<Category>> GetAllCategoriesAsync();
-        public Task<Category> GetCategoryByIdAsync(int id);
-        public Task<Category> CreateCategoryAsync(Category obj);
-        public Task<Category> UpdateCategoryAsync(Category obj);
-        public Task<bool> DeleteCategoryAsync(int id);
+        Task<IReadOnlyList<Category>> GetAllCategoriesAsync(CancellationToken ct = default);
+        Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default);
+        Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default);
+
+        Task CreateCategoryAsync(Category entity, CancellationToken ct = default);
+        Task UpdateCategoryAsync(Category entity);
+        Task DeleteCategoryAsync(Category entity);
     }
 }

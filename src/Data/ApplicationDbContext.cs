@@ -9,7 +9,19 @@ namespace BlazeBuy.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
-        public DbSet<OrderHeader> OrderHeaders { get; set; }
-        public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            // unique (UserId, ProductId) index for ShoppingCart
+            builder.Entity<ShoppingCart>()
+                .HasIndex(c => new { c.UserId, c.ProductId })
+                .IsUnique();
+        }
     }
+
+
 }
