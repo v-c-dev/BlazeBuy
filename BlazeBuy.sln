@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazeBuy", "src\BlazeBuy.csproj", "{8B6E0842-B01E-4834-B5D0-CF24E43B469A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazeBuy.Tests", "src\tests\BlazeBuy.Tests\BlazeBuy.Tests.csproj", "{05677F47-D431-4FE1-A063-B4AB0303F6CF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B6E0842-B01E-4834-B5D0-CF24E43B469A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B6E0842-B01E-4834-B5D0-CF24E43B469A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B6E0842-B01E-4834-B5D0-CF24E43B469A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B6E0842-B01E-4834-B5D0-CF24E43B469A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05677F47-D431-4FE1-A063-B4AB0303F6CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05677F47-D431-4FE1-A063-B4AB0303F6CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05677F47-D431-4FE1-A063-B4AB0303F6CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05677F47-D431-4FE1-A063-B4AB0303F6CF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
