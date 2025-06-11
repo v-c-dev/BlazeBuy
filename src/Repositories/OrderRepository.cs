@@ -20,7 +20,7 @@ namespace BlazeBuy.Repositories
             return Task.CompletedTask;
         }
 
-        public Task<Order?> GetOrderAsync(int id, CancellationToken ct = default) =>
+        public Task<Order?> GetOrderByIdAsync(int id, CancellationToken ct = default) =>
             _db.Orders
                 .Include(o => o.Items)
                 .ThenInclude(oi => oi.Product)

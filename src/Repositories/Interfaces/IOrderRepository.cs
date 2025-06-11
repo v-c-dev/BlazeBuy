@@ -8,7 +8,7 @@ namespace BlazeBuy.Repositories.Interfaces
 
         public Task UpdateOrderAsync(Order order);
 
-        Task<Order?> GetOrderAsync(int id, CancellationToken ct = default);
+        Task<Order?> GetOrderByIdAsync(int id, CancellationToken ct = default);
         Task<Order?> GetOrderBySessionIdAsync(string sessionId, CancellationToken ct = default);
 
         Task<IReadOnlyList<Order>> GetOrderForUserAsync(
