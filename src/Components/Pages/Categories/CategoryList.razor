@@ -7,11 +7,10 @@
 @inject IJSRuntime _js
 @inject NavigationManager _navigationManager
 
-<!-- optional Bootstrap modal for delete confirmation -->
-<BsModal onModalConfirmed="DeleteConfirmation"
+<ConfirmModal onModalConfirmed="DeleteConfirmation"
          Title="Are you sure you want to delete this category?"
          BtnStyle="btn-danger"
-         BtnText="Delete" />
+         BtnText="Delete"/>
 
 <PageTitle>Category List</PageTitle>
 
