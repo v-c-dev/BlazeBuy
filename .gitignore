@@ -26,3 +26,9 @@ src/tests/BlazeBuy.Tests/bin/Debug/net9.0/fr/
 src/tests/BlazeBuy.Tests/bin/Debug/net9.0/ko/
 
 src/tests/BlazeBuy.Tests/bin/Debug/net9.0/
+
+.vs/BlazeBuy/config/
+
+src/Data/Migrations/
+
+src/appsettings.json
