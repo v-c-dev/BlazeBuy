@@ -1,0 +1,100 @@
+﻿@page "/categories/create"
+@page "/categories/update/{Id:int}"
+@using BlazeBuy.Models
+@using BlazeBuy.Services.Interfaces
+@rendermode InteractiveServer
+
+@inject ICategoryService _categoryService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _js
+
+<PageTitle>@(Id > 0 ? "Update Category" : "Create Category")</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   Value="100" ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width:600px">
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" class="rz-p-4 rz-bg-primary rz-text-light">
+            <RadzenText TextStyle="TextStyle.H2">
+                <strong>@((Id > 0) ? "Update" : "Create") Category</strong>
+            </RadzenText>
+        </RadzenStack>
+
+        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8"
+                    style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+
+            <RadzenTemplateForm Data="@Category"
+                                TItem="Category"
+                                Submit="@SaveAsync"
+                                InvalidSubmit="@(_ => {})">
+
+                <RadzenFieldset>
+
+                    <RadzenLabel Text="Name" Component="Name" style="width:100%" />
+                    <RadzenTextBox @bind-Value="Category.Name"
+                                   Name="Name"
+                                   Style="width:100%"
+                                   Placeholder="Name"
+                                   Disabled="@IsProcessing" />
+                    <RadzenRequiredValidator Component="Name" Text="Name is required" Style="display:block" />
+
+                </RadzenFieldset>
+
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-mt-4">
+                    <RadzenButton Icon="save" Text="Save" ButtonStyle="ButtonStyle.Primary"
+                                  Type="ButtonType.Submit"
+                                  Disabled="@IsProcessing" />
+
+                    <RadzenButton Icon="arrow_back" Text="Back to list" ButtonStyle="ButtonStyle.Secondary"
+                                  Disabled="@IsProcessing"
+                                  Click="@(()=> _navigationManager.NavigateTo("/categories"))" />
+                </RadzenStack>
+
+            </RadzenTemplateForm>
+        </RadzenCard>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool IsProcessing { get; set; } = true;
+    private Category Category { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            Category = await _categoryService.GetCategoryByIdAsync(Id) ?? new Category();
+        }
+        IsProcessing = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        IsProcessing = true;
+
+        if (Id > 0)
+        {
+            await _categoryService.UpdateCategoryAsync(Category);
+            await _js.ToastrSuccess("Category updated successfully");
+        }
+        else
+        {
+            await _categoryService.CreateCategoryAsync(Category);
+            await _js.ToastrSuccess("Category created successfully");
+        }
+
+        IsProcessing = false;
+        _navigationManager.NavigateTo("/categories");
+    }
+}

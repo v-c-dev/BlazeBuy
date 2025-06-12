@@ -1,4 +1,4 @@
-﻿@page "/catlist"
+﻿@page "/categories"
 @using BlazeBuy.Models
 @using BlazeBuy.Services.Interfaces
 @rendermode InteractiveServer
@@ -32,7 +32,7 @@ else
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
             <RadzenButton Text="Add new" Icon="add_circle" ButtonStyle="ButtonStyle.Primary"
-                          Click="@(()=> _navigationManager.NavigateTo("/category/create"))" />
+                          Click="@(()=> _navigationManager.NavigateTo("/categories/create"))" />
         </RadzenStack>
         
 
@@ -55,7 +55,7 @@ else
                             <Template Context="cat">
                                 <RadzenButton Size="ButtonSize.Small" Icon="edit"
                                               ButtonStyle="ButtonStyle.Primary"
-                                              Click="@(()=> _navigationManager.NavigateTo($"/category/update/{cat.Id}"))" />
+                                              Click="@(()=> _navigationManager.NavigateTo($"/categories/update/{cat.Id}"))" />
                                 <RadzenButton Size="ButtonSize.Small" Icon="delete"
                                               ButtonStyle="ButtonStyle.Danger"
                                               Click="@(()=> HandleDelete(cat.Id))"
