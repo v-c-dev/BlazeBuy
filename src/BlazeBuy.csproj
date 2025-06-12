@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="Services\DTOs\" />
+    <Folder Include="wwwroot\images\NewFolder\" />
   </ItemGroup>
 
 </Project>

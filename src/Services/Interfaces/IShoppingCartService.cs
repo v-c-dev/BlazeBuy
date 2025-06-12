@@ -8,5 +8,6 @@ namespace BlazeBuy.Services.Interfaces
         Task RemoveCartItemAsync(string userId, int productId, CancellationToken ct = default);
         Task ClearCartAsync(string userId, CancellationToken ct = default);
         Task<IReadOnlyList<ShoppingCart>> GetCartAsync(string userId, CancellationToken ct = default);
+        Task<int> GetTotalCartCountAsync(string userId, CancellationToken ct = default);
     }
 }
