@@ -30,3 +30,5 @@ src/tests/BlazeBuy.Tests/bin/Debug/net9.0/
 .vs/BlazeBuy/config/
 
 src/Data/Migrations/
+
+src/appsettings.json

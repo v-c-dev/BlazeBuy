@@ -1,10 +1,16 @@
 using BlazeBuy.Components;
 using BlazeBuy.Components.Account;
 using BlazeBuy.Data;
+using BlazeBuy.Extensions.Email;
+using BlazeBuy.Services.Interfaces;
+using BlazeBuy.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Radzen.Blazor;
+using BlazeBuy.Repositories.Interfaces;
+using BlazeBuy.Repositories;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +18,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-builder.Services.AddScoped<RadzenComponents>();
+builder.Services.AddRadzenComponents();
 
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddAuthentication(options =>
     {
