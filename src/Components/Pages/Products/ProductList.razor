@@ -1,4 +1,5 @@
 ﻿@page "/products"
+
 @rendermode InteractiveServer
 
 @using BlazeBuy.Models
@@ -29,25 +30,19 @@ else
 {
     <RadzenCard class="rz-my-12 rz-mx-auto">
 
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-p-4">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-p-4">
             <RadzenText TextStyle="TextStyle.H2"><strong>Product list</strong></RadzenText>
             <RadzenButton Icon="add_circle" Text="Add new"
                           ButtonStyle="ButtonStyle.Primary"
                           Click="@(() => _navigationManager.NavigateTo("/products/create"))" />
         </RadzenStack>
 
-        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8"
-                    style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
 
             @if (Products.Any())
             {
-                <RadzenDataGrid Data="@Products"
-                                AllowFiltering="true"
-                                AllowSorting="true"
-                                AllowPaging="true"
-                                PageSize="10"
-                                FilterMode="FilterMode.Simple"
-                                ColumnWidth="200px">
+                <RadzenDataGrid Data="@Products" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="10" 
+                                FilterMode="FilterMode.Simple" ColumnWidth="200px">
 
                     <Columns>
                         <RadzenDataGridColumn Property="Name"        Title="Name"         />
@@ -75,7 +70,7 @@ else
     private bool IsProcessing { get; set; } = true;
     private IEnumerable<Product> Products { get; set; } = new List<Product>();
     private int _deleteId;
-
+    // TODO: show SpecialTag as badge - https://blazor.radzen.com/badge?theme=material3#badge-shade
     protected override async Task OnInitializedAsync()
     {
         await LoadProductsAsync();
@@ -99,9 +94,10 @@ else
 
         IsProcessing = true;
         StateHasChanged();
-
+    
         await _productService.DeleteProductAsync(_deleteId);
-        await _js.ToastrSuccess("Product deleted successfully");
+
+        //await _js.ToastrSuccess("Product deleted successfully");
 
         _deleteId = 0;
         await _js.InvokeVoidAsync("HideConfirmationModal");
