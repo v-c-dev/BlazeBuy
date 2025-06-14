@@ -1,14 +1,21 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazeBuy.Models.Enums
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider _authStateProvider
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    <AuthorizeView Roles="@nameof(UserRole.Admin)">
+        <div class="sidebar">
+            <NavMenu/>
+        </div>
+    </AuthorizeView>
+
+    
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        @if(navBarVisible)
+        {
+            <NavBar />
+        }
 
         <article class="content px-4">
             @Body
@@ -21,3 +28,27 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code
+{
+    [Parameter] public bool navBarVisible { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        navBarVisible = await ShowNavBar();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        navBarVisible = await ShowNavBar();
+    }
+
+    private async Task<bool> ShowNavBar()
+    {
+        var authState = await _authStateProvider.GetAuthenticationStateAsync();
+        var userAuth = authState.User;
+        var isAuth = userAuth.Identity.IsAuthenticated && userAuth.Identity is not null;
+
+        return (!isAuth || !userAuth.IsInRole(nameof(UserRole.Admin))) ? true : false;
+    }
+}

@@ -1,0 +1,114 @@
+﻿@page "/categories"
+@using BlazeBuy.Models
+@using BlazeBuy.Services.Interfaces
+@rendermode InteractiveServer
+
+@inject ICategoryService _categoryService
+@inject IJSRuntime _js
+@inject NavigationManager _navigationManager
+
+<ConfirmModal onModalConfirmed="DeleteConfirmation"
+         Title="Are you sure you want to delete this category?"
+         BtnStyle="btn-danger"
+         BtnText="Delete"/>
+
+<PageTitle>Category List</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   Value="100" ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto">
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" class="rz-p-4">
+            <RadzenText TextStyle="TextStyle.H2"><strong>Category list</strong></RadzenText>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Right">
+            <RadzenButton Text="Add new" Icon="add_circle" ButtonStyle="ButtonStyle.Primary"
+                          Click="@(()=> _navigationManager.NavigateTo("/categories/create"))" />
+        </RadzenStack>
+        
+
+        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8"
+                    style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+
+            @if (Categories.Any())
+            {
+                <RadzenDataGrid Data="@Categories"
+                                AllowFiltering="true"
+                                AllowSorting="true"
+                                PageSize="15"
+                                AllowPaging="true"
+                                FilterMode="FilterMode.Simple"
+                                SelectionMode="DataGridSelectionMode.Single">
+
+                    <Columns>
+                        <RadzenDataGridColumn Property="Name" Title="Name" Width="300px" />
+                        <RadzenDataGridColumn Title="Actions" Width="180px" Sortable="false" Filterable="false">
+                            <Template Context="cat">
+                                <RadzenButton Size="ButtonSize.Small" Icon="edit"
+                                              ButtonStyle="ButtonStyle.Primary"
+                                              Click="@(()=> _navigationManager.NavigateTo($"/categories/update/{cat.Id}"))" />
+                                <RadzenButton Size="ButtonSize.Small" Icon="delete"
+                                              ButtonStyle="ButtonStyle.Danger"
+                                              Click="@(()=> HandleDelete(cat.Id))"
+                                              Style="margin-left: 0.5rem" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+        </RadzenCard>
+    </RadzenCard>
+}
+
+@code {
+    private bool IsProcessing { get; set; } = true;
+    private IEnumerable<Category> Categories { get; set; } = new List<Category>();
+    private int _deleteId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+        IsProcessing = false;
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        Categories = await _categoryService.GetAllCategoriesAsync();
+    }
+
+    private void HandleDelete(int id)
+    {
+        _deleteId = id;
+        _js.InvokeVoidAsync("ShowConfirmationModal");
+    }
+
+    private async Task DeleteConfirmation(bool confirmed)
+    {
+        if (!confirmed || _deleteId == 0) return;
+
+        IsProcessing = true;
+        StateHasChanged();
+
+        var success = await _categoryService.DeleteCategoryAsync(_deleteId);
+        if (success)
+            await _js.ToastrSuccess("Category deleted successfully");
+        else
+            await _js.ToastrError("Delete failed — category may be in use");
+
+        _deleteId = 0;
+
+        await LoadCategoriesAsync();
+        await _js.InvokeVoidAsync("HideConfirmationModal");
+
+        IsProcessing = false;
+    }
+}

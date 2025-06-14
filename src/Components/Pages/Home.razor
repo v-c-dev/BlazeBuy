@@ -1,7 +1,216 @@
 ﻿@page "/"
+@using BlazeBuy.Models
+@using BlazeBuy.Services
+@using BlazeBuy.Services.Interfaces
+
+@rendermode InteractiveServer
+
+@inject IProductService _productService
+@inject ICategoryService _categoryService
+@inject IShoppingCartService _shoppingCartService
+@inject IJSRuntime _jsRuntime
+
+@inject SharedStateService _shared
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   Value="100" ShowValue="false" 
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <div class="container-fluid px-0 m-0 full-width">
+        <div class="jumbotron-custom">
+            <div class="m-auto d-flex align-items-center" style="width: 400px; height: 50vh;">
 
-Welcome to your new app.
+                <div class="d-flex align-items-center" style="width: 100%;">
+                    <input type="text" class="form-control rounded-pill"
+                           @bind:event="oninput" @bind:get="SearchInput" @bind:set="FilterProductsByName"
+                           placeholder="Search for Food Items!"
+                           style="width: 100%; padding: 20px;">
+                    <span style="position: relative; left: -43px;"><i class="bi bi-search"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <RadzenStack Orientation="Orientation.Vertical" Gap="1.5rem" class="px-4 m-2">
+
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 Gap="0.5rem"
+                 JustifyContent="JustifyContent.Center">
+
+        <RadzenButton Text="All"
+                      Click="() => FilterProductsById(0)"
+                      ButtonStyle="@(SelectedCategoryId == 0 ? ButtonStyle.Primary : ButtonStyle.Light)"
+                      Size="ButtonSize.Small" />
+
+        @foreach (var cat in Categories)
+        {
+            <RadzenButton Text="@cat.Name"
+                          Click="() => FilterProductsById(cat.Id)"
+                          ButtonStyle="@(SelectedCategoryId == cat.Id ? ButtonStyle.Primary : ButtonStyle.Light)"
+                          Size="ButtonSize.Small" />
+        }
+    </RadzenStack>
+
+        <RadzenRow class="rz-mt-4 rz-px-4">
+        @foreach (var prod in FilteredProducts)
+        {
+            <RadzenStack JustifyContent="JustifyContent.Center" >
+                <RadzenColumn Size="12" SizeMd="4" SizeLg="4"
+                                  class="pe-3 mb-5" Style="width: 350px; height: 450px">
+                    <RadzenCard Style="display:flex; flex-direction:column; height:100%; overflow: hidden;">
+
+                        <RadzenStack 
+                                Orientation="Orientation.Horizontal"
+                                Style="height:100px; overflow:hidden;" class="rz-mb-1">
+
+                            @if (!string.IsNullOrEmpty(prod.SpecialTag))
+                            {
+                                <RadzenButton Variant="Variant.Outlined" Text="@prod.SpecialTag"
+                                              ButtonStyle="ButtonStyle.Success" Icon="grade" Size="ButtonSize.ExtraSmall" />
+                            }
+                        </RadzenStack>
+
+                        <RadzenStack>
+                            <RadzenText 
+                                TextStyle="TextStyle.H5" TextAlign="TextAlign.Center" class="rz-mb-1">
+                                @prod.Name
+                            </RadzenText>
+                        </RadzenStack>
+
+                        <RadzenStack Style="height:500px; overflow:hidden; justify-content:center;">
+                            <RadzenImage 
+                                Path="@(prod.ImageUrl ?? "/images/default.png")"
+                                Style="width:100%; height:100%; object-fit:contain;" />
+                        </RadzenStack>
+                        
+                        <RadzenStack 
+                            Style="height:80px; overflow:auto; justify-content:center;"
+                            class="rz-mb-1">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" Text="@prod.Price.ToString("C")"
+                                        TextAlign="TextAlign.Center" class="rz-mt-1" />
+                        </RadzenStack>
+
+                        <RadzenStack 
+                                     Style="height:160px; overflow:auto; justify-content:center;"
+                                     class="rz-mb-1">
+                            <RadzenText TextAlign="TextAlign.Center"
+                                        class="rz-py-2"
+                                            Style="width:100%; height:100%; object-fit:cover; overflow-y:auto;">
+                                @prod.Description
+                            </RadzenText>
+                        </RadzenStack>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+                            <RadzenButton Icon="shopping_cart" Text="Add to cart"
+                                           ButtonStyle="ButtonStyle.Success"
+                                          Click="@(() => AddToCartAsync(prod))" />
+                        </RadzenStack>
+
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenStack>
+            }
+    </RadzenRow>
+    
+
+</RadzenStack>
+}
+
+
+@code{
+    public bool IsProcessing { get; set; } = true;
+    public IEnumerable<Product> Products = new List<Product>();
+    public IEnumerable<Category> Categories = new List<Category>();
+    public IEnumerable<Product> FilteredProducts = new List<Product>();
+
+    public int SelectedCategoryId = 0;
+    public string SearchInput = "";
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadProducts();
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadProducts()
+    {
+        Products = await _productService.GetAllProductsAsync();
+        Categories = await _categoryService.GetAllCategoriesAsync();
+        FilterProductsById(0);
+    }
+
+    private void FilterProductsById(int categoryId)
+    {
+        if (categoryId == 0)
+        {
+            FilteredProducts = Products;
+            SelectedCategoryId = categoryId;
+        }
+        else
+        {
+            FilteredProducts = Products.Where(p => p.CategoryId == categoryId).ToList();
+            SelectedCategoryId = categoryId;
+            SearchInput = string.Empty;
+        }
+    }
+
+    private void FilterProductsByName(string searchInput)
+    {
+        if (string.IsNullOrWhiteSpace(searchInput))
+        {
+            FilteredProducts = Products;
+        }
+        else
+        {
+            FilteredProducts = Products
+                .Where(p => p.Name.Contains(searchInput, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        SearchInput = searchInput;
+    }
+
+    private string GetActiveTabClass(int categoryId)
+    {
+        return SelectedCategoryId == categoryId ? "active" : string.Empty;
+    }
+
+    private async Task AddToCartAsync(Product product)
+    {
+        var auth = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = auth.User;
+
+        if (!(user.Identity?.IsAuthenticated ?? false))
+        {
+            _navigationManager.NavigateTo("/account/login");
+            return;
+        }
+
+        var userId = user.FindFirst("sub")?.Value
+                     ?? user.FindFirst(c => c.Type.Contains("nameidentifier"))?.Value;
+
+        await _shoppingCartService.AddCartItemAsync(userId!, product.Id, 1);
+
+        // option to avoid another query
+        // _shared.Bump(+1);
+
+        // re-query DB for total
+        await _shared.RefreshAsync(userId!);
+
+        await _jsRuntime.ToastrSuccess("Product added to cart!");
+    }
+}

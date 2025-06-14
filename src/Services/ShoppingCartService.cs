@@ -50,5 +50,12 @@ namespace BlazeBuy.Services
                 .AsNoTracking()
                 .ToListAsync(ct);
         }
+
+        public async Task<int> GetTotalCartCountAsync(string userId, CancellationToken ct = default)
+        {
+            return await db.ShoppingCarts
+                .Where(c => c.UserId == userId)
+                .SumAsync(c => (int?)c.Quantity, ct) ?? 0;
+        }
     }
 }

@@ -1,0 +1,108 @@
+﻿@page "/products"
+
+@rendermode InteractiveServer
+
+@using BlazeBuy.Models
+@using BlazeBuy.Services.Interfaces
+
+@inject IProductService _productService
+@inject IJSRuntime _js
+
+@inject NavigationManager _navigationManager
+
+<ConfirmModal onModalConfirmed="DeleteConfirmed"
+         Title="Are you sure you want to delete this product?"
+         BtnStyle="btn-danger"
+         BtnText="Delete" />
+
+<PageTitle>Products</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   Value="100" ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto">
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-p-4">
+            <RadzenText TextStyle="TextStyle.H2"><strong>Product list</strong></RadzenText>
+            <RadzenButton Icon="add_circle" Text="Add new"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@(() => _navigationManager.NavigateTo("/products/create"))" />
+        </RadzenStack>
+
+        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+
+            @if (Products.Any())
+            {
+                <RadzenDataGrid Data="@Products" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="10" 
+                                FilterMode="FilterMode.Simple" ColumnWidth="200px">
+
+                    <Columns>
+                        <RadzenDataGridColumn Property="Name"        Title="Name"         />
+                        <RadzenDataGridColumn Property="Price"       Title="Price"        FormatString="{0:C}" />
+                        <RadzenDataGridColumn Property="Description" Title="Description"  Width="300px" />
+                        <RadzenDataGridColumn Property="Category.Name" Title="Category"   />
+                        <RadzenDataGridColumn Property="SpecialTag"  Title="Special Tag"  />
+                        <RadzenDataGridColumn Title="Actions" Width="160px" Sortable="false" Filterable="false">
+                            <Template Context="prd">
+                                <RadzenButton Icon="edit"   Size="ButtonSize.Small"
+                                              Click="@(() => _navigationManager.NavigateTo($"/products/update/{prd.Id}"))"
+                                              Style="margin-right: .5rem;" />
+                                <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                              Click="@(() => PromptDelete(prd.Id))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+        </RadzenCard>
+    </RadzenCard>
+}
+
+@code {
+    private bool IsProcessing { get; set; } = true;
+    private IEnumerable<Product> Products { get; set; } = new List<Product>();
+    private int _deleteId;
+    // TODO: show SpecialTag as badge - https://blazor.radzen.com/badge?theme=material3#badge-shade
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProductsAsync();
+        IsProcessing = false;
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        Products = await _productService.GetAllProductsAsync();
+    }
+
+    private void PromptDelete(int id)
+    {
+        _deleteId = id;
+        _js.InvokeVoidAsync("ShowConfirmationModal");
+    }
+
+    private async Task DeleteConfirmed(bool confirmed)
+    {
+        if (!confirmed || _deleteId == 0) return;
+
+        IsProcessing = true;
+        StateHasChanged();
+    
+        await _productService.DeleteProductAsync(_deleteId);
+
+        //await _js.ToastrSuccess("Product deleted successfully");
+
+        _deleteId = 0;
+        await _js.InvokeVoidAsync("HideConfirmationModal");
+        await LoadProductsAsync();
+
+        IsProcessing = false;
+    }
+}
