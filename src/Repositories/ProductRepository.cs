@@ -6,9 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazeBuy.Repositories
 {
-    internal sealed class ProductRepository(ApplicationDbContext db) : IProductRepository
+    internal sealed class ProductRepository : IProductRepository
     {
-        private readonly ApplicationDbContext _db = db;
+        private readonly ApplicationDbContext _db;
+
+        public ProductRepository(ApplicationDbContext db)
+        {
+            _db = db;
+        }
 
         public async Task<IReadOnlyList<Product>> GetAllProductsAsync(CancellationToken ct = default) =>
             await _db.Products
@@ -17,26 +22,33 @@ namespace BlazeBuy.Repositories
                 .OrderBy(p => p.Name)
                 .ToListAsync(ct);
 
-        public Task<Product?> GetProductAsync(int id, CancellationToken ct = default) =>
+        public Task<Product?> GetProductByIdAsync(int id, CancellationToken ct = default) =>
             _db.Products
-                .Include(p => p.Category)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
 
 
-        public async Task CreateProductAsync(Product entity, CancellationToken ct = default) =>
-            await _db.Products.AddAsync(entity, ct);
-
-        public Task UpdateProductAsync(Product entity)
+        public async Task<Product> CreateProductAsync(Product entity, CancellationToken ct = default)
         {
-            _db.Products.Update(entity);
-            return Task.CompletedTask;
+            await _db.Products.AddAsync(entity, ct);
+            await _db.SaveChangesAsync();
+            return entity;
         }
 
-        public Task DeleteProductAsync(Product entity)
+        public async Task UpdateProductAsync(Product entity, CancellationToken ct = default)
         {
+            entity.Category = null!;
+            _db.Products.Update(entity);
+            await _db.SaveChangesAsync(ct);
+
+        }
+
+        public async Task DeleteProductAsync(Product entity, CancellationToken ct = default)
+        {
+            entity.Category = null!;
+
             _db.Products.Remove(entity);
-            return Task.CompletedTask;
+            await _db.SaveChangesAsync(ct);
         }
     }
 }

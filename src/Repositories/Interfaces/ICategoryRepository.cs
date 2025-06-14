@@ -8,8 +8,8 @@ namespace BlazeBuy.Repositories.Interfaces
         Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default);
         Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default);
 
-        Task CreateCategoryAsync(Category entity, CancellationToken ct = default);
-        Task UpdateCategoryAsync(Category entity);
-        Task DeleteCategoryAsync(Category entity);
+        Task<Category> CreateCategoryAsync(Category entity, CancellationToken ct = default);
+        Task UpdateCategoryAsync(Category entity, CancellationToken ct = default);
+        Task DeleteCategoryAsync(Category entity, CancellationToken ct = default);
     }
 }

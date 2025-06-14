@@ -6,7 +6,7 @@ using BlazeBuy.Services.Interfaces;
 namespace BlazeBuy.Services
 {
     internal sealed class CategoryService(ApplicationDbContext db, ICategoryRepository repo,
-        IProductRepository productRepo, ILogger<CategoryService> log) : ICategoryService
+        IProductRepository productRepo) : ICategoryService
     {
         public Task<IReadOnlyList<Category>> GetAllCategoriesAsync(CancellationToken ct = default) =>
             repo.GetAllCategoriesAsync(ct);
@@ -14,18 +14,11 @@ namespace BlazeBuy.Services
         public Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default) =>
             repo.GetCategoryByIdAsync(id, ct);
 
-        public async Task<Category> CreateCategoryAsync(Category category, CancellationToken ct = default)
-        {
-            await repo.CreateCategoryAsync(category, ct);
-            await db.SaveChangesAsync(ct);
-            return category;
-        }
+        public Task<Category> CreateCategoryAsync(Category category, CancellationToken ct = default)
+            => repo.CreateCategoryAsync(category, ct);
 
-        public async Task UpdateCategoryAsync(Category category, CancellationToken ct = default)
-        {
-            await repo.UpdateCategoryAsync(category);
-            await db.SaveChangesAsync(ct);
-        }
+        public Task UpdateCategoryAsync(Category category, CancellationToken ct = default)
+            => repo.UpdateCategoryAsync(category, ct);
 
         public async Task<bool> DeleteCategoryAsync(int id, CancellationToken ct = default)
         {

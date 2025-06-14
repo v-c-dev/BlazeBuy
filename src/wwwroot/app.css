@@ -60,7 +60,7 @@ h1:focus {
 }
 
 .jumbotron-custom {
-    background: linear-gradient(to right, #2c536499, #203a4399, #0f202799), url(BlazeBuy.png) center;
+    background: linear-gradient(to right, #2c536499, #203a4399, #0f202799), url(images/jumbotron.png) center;
     background-size: cover;
     width: 100%;
     height: 50vh;

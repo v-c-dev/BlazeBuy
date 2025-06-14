@@ -1,0 +1,188 @@
+﻿@page "/products/create"
+@page "/products/update/{Id:int}"
+@rendermode InteractiveServer
+
+@using BlazeBuy.Models
+@using BlazeBuy.Services.Interfaces
+
+
+@inject IProductService _productService
+@inject ICategoryService _categoryService
+@inject IWebHostEnvironment _webHostEnvironment
+@inject NavigationManager _nav
+@inject IJSRuntime _js        
+
+<PageTitle>@(Id > 0 ? "Update Product" : "Create Product")</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <RadzenStack JustifyContent="JustifyContent.SpaceAround" class="rz-my-12 rz-mx-auto" Style="max-width:900px">
+        <RadzenCard>
+
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" class="rz-p-4 rz-bg-primary rz-text-light">
+                <RadzenText TextStyle="TextStyle.H2">
+                    <strong>@((Id > 0) ? "Update" : "Create") Product</strong>
+                </RadzenText>
+            </RadzenStack>
+
+            <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8">
+                <RadzenTemplateForm Data="@product"
+                                    TItem="Product"
+                                    Submit="@SaveAsync"
+                                    InvalidSubmit="@(_ => {})">
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Name" Component="Name" Style="color: var(--rz-text-color);" />
+                        <RadzenTextBox @bind-Value="product.Name" Name="Name" Style="width:100%" Disabled="@IsProcessing" />
+                        <RadzenRequiredValidator Component="Name" Text="Name required" Style="display:block" />
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Description" Style="color: var(--rz-text-color);" />
+                        <RadzenHtmlEditor @bind-Value="product.Description"
+                                          Disabled="@IsProcessing"
+                                          Style="color: var(--rz-text-color); height: 100px;">
+                            <RadzenHtmlEditorUndo />
+                            <RadzenHtmlEditorRedo />
+                        </RadzenHtmlEditor>
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Special Tag" Component="Tag" Style="color: var(--rz-text-color);" />
+                        <RadzenTextBox @bind-Value="product.SpecialTag" Name="Tag" Style="width:100%" Disabled="@IsProcessing" />
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Price" Component="Price" Style="color: var(--rz-text-color);" />
+                        <RadzenNumeric @bind-Value="product.Price" Name="Price" Style="width:100%" Disabled="@IsProcessing" />
+                        <RadzenRequiredValidator Component="Price" Text="Price required" Style="display:block" />
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Category" Component="Cat" Style="color: var(--rz-text-color);" />
+                        <RadzenDropDown TValue="int"
+                                        Data="@_categories"
+                                        TextProperty="Name"
+                                        ValueProperty="Id"
+                                        @bind-Value="product.CategoryId"
+                                        Name="Cat"
+                                        Style="width:100%"
+                                        Disabled="@IsProcessing" />
+                        <RadzenRequiredValidator Component="Cat" Text="Select category" Style="display:block" />
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Image" Style="color: var(--rz-text-color);" />
+                        <InputFile OnChange="UploadFile" accept="image/png, image/jpeg" disabled="@IsProcessing" />
+                        @if (product.ImageUrl is not null)
+                        {
+                            <div class="rz-mt-2">
+                                <img src="@product.ImageUrl" class="img-thumbnail" style="max-height:150px" />
+                                <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                              Click="RemoveImage" class="rz-ml-2" />
+                            </div>
+                        }
+                    </RadzenFieldset>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-mt-4">
+                        <RadzenButton Icon="save" Text="Save" ButtonStyle="ButtonStyle.Primary"
+                                      Type="ButtonType.Submit" Disabled="@(IsProcessing || uploading)" />
+                        <RadzenButton Icon="arrow_back" Text="Back to list" ButtonStyle="ButtonStyle.Secondary"
+                                      Disabled="@IsProcessing"
+                                      Click="@(() => _nav.NavigateTo("/products"))" />
+                    </RadzenStack>
+                </RadzenTemplateForm>
+            </RadzenCard>
+        </RadzenCard>
+    </RadzenStack>
+}
+
+@code
+{
+    [Parameter]
+    public int Id { get; set; }
+
+    private bool IsProcessing { get; set; } = true;
+    private IEnumerable<Category> _categories = new List<Category>();
+    private Product product = new();
+    private string _dir = string.Empty;
+
+    private bool uploading { get; set; } = false;
+    private bool hasImage { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dir = Path.Combine(_webHostEnvironment.WebRootPath, "images", "products");
+
+        if (Id > 0)
+            product = await _productService.GetProductByIdAsync(Id) ?? new Product();
+
+        _categories = await _categoryService.GetAllCategoriesAsync();
+        IsProcessing = false;
+    }
+
+    private async Task SaveAsync(Product model)
+    {
+        IsProcessing = true;
+        try
+        {
+            if (Id > 0)
+            {
+                await _productService.UpdateProductAsync(product);
+                await _js.ToastrSuccess("Product Updated Successfully");
+            }
+            else
+            {
+                await _productService.CreateProductAsync(product);
+                await _js.ToastrSuccess("Product Created Successfully");
+            }
+
+            await Task.Delay(2000);
+            _nav.NavigateTo("/products");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            IsProcessing = false;
+            await _js.ToastrError("Error creating/updating product");
+            _nav.NavigateTo("/products");
+        }
+    }
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        uploading = true;
+        StateHasChanged();
+
+        var file = e.File;
+        var newName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+        Directory.CreateDirectory(_dir);
+
+        await using var fs = File.Create(Path.Combine(_dir, newName));
+        await file.OpenReadStream().CopyToAsync(fs);
+
+        product.ImageUrl = $"/images/products/{newName}";
+        uploading = false;
+        StateHasChanged();
+    }
+
+    private void RemoveImage()
+    {
+        if (product.ImageUrl is null) return;
+
+        var fileName = product.ImageUrl.Split('/').Last();
+        var path = Path.Combine(_dir, fileName);
+        if (File.Exists(path)) File.Delete(path);
+
+        product.ImageUrl = null;
+    }
+}
