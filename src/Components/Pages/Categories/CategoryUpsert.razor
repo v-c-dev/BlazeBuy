@@ -32,15 +32,12 @@ else
         <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8"
                     style="margin: 1rem calc(-1 * var(--rz-card-padding));">
 
-            <RadzenTemplateForm Data="@Category"
-                                TItem="Category"
-                                Submit="@SaveAsync"
-                                InvalidSubmit="@(_ => {})">
+            <RadzenTemplateForm Data="@category" TItem="Category" Submit="@SaveAsync" InvalidSubmit="@(_ => {})">
 
                 <RadzenFieldset>
 
-                    <RadzenLabel Text="Name" Component="Name" style="width:100%" />
-                    <RadzenTextBox @bind-Value="Category.Name"
+                    <RadzenLabel Text="Name" Component="Name" Style="color: var(--rz-text-color); width:100%;" />
+                    <RadzenTextBox @bind-Value="category.Name"
                                    Name="Name"
                                    Style="width:100%"
                                    Placeholder="Name"
@@ -68,14 +65,15 @@ else
     [Parameter] public int Id { get; set; }
 
     private bool IsProcessing { get; set; } = true;
-    private Category Category { get; set; } = new();
+    private Category category = new();
 
     protected override async Task OnInitializedAsync()
     {
         if (Id > 0)
         {
-            Category = await _categoryService.GetCategoryByIdAsync(Id) ?? new Category();
+            category = await _categoryService.GetCategoryByIdAsync(Id) ?? new Category();
         }
+
         IsProcessing = false;
     }
 
@@ -85,15 +83,16 @@ else
 
         if (Id > 0)
         {
-            await _categoryService.UpdateCategoryAsync(Category);
+            await _categoryService.UpdateCategoryAsync(category);
             await _js.ToastrSuccess("Category updated successfully");
         }
         else
         {
-            await _categoryService.CreateCategoryAsync(Category);
+            await _categoryService.CreateCategoryAsync(category);
             await _js.ToastrSuccess("Category created successfully");
         }
 
+        await Task.Delay(2000);
         IsProcessing = false;
         _navigationManager.NavigateTo("/categories");
     }

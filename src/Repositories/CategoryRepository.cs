@@ -15,25 +15,29 @@ namespace BlazeBuy.Repositories
                 .OrderBy(c => c.Name)
                 .ToListAsync(ct);
 
-        public Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default) =>
-            _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct);
+        public async Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default) =>
+            await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct);
 
-        public Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default) =>
-            _db.Categories.AnyAsync(c => c.Id == id, ct);
+        public async Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default) =>
+            await _db.Categories.AnyAsync(c => c.Id == id, ct);
 
-        public async Task CreateCategoryAsync(Category entity, CancellationToken ct = default) =>
-            await _db.Categories.AddAsync(entity, ct);
-
-        public Task UpdateCategoryAsync(Category entity)
+        public async Task<Category> CreateCategoryAsync(Category entity, CancellationToken ct = default)
         {
-            _db.Categories.Update(entity);
-            return Task.CompletedTask;
+            _db.Categories.Add(entity);
+            await _db.SaveChangesAsync(ct);
+            return entity;
         }
 
-        public Task DeleteCategoryAsync(Category entity)
+        public async Task UpdateCategoryAsync(Category entity, CancellationToken ct = default)
+        {
+            _db.Categories.Update(entity);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        public async Task DeleteCategoryAsync(Category entity, CancellationToken ct = default)
         {
             _db.Categories.Remove(entity);
-            return Task.CompletedTask;
+            await _db.SaveChangesAsync(ct);
         }
     }
 }
