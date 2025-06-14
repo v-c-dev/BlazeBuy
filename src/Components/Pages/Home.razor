@@ -27,104 +27,102 @@
 }
 else
 {
-    <div class="container-fluid px-0 m-0 full-width">
-        <div class="jumbotron-custom">
-            <div class="m-auto d-flex align-items-center" style="width: 400px; height: 50vh;">
-
-                <div class="d-flex align-items-center" style="width: 100%;">
-                    <input type="text" class="form-control rounded-pill"
-                           @bind:event="oninput" @bind:get="SearchInput" @bind:set="FilterProductsByName"
-                           placeholder="Search for Food Items!"
-                           style="width: 100%; padding: 20px;">
-                    <span style="position: relative; left: -43px;"><i class="bi bi-search"></i></span>
+    <div class="container-fluid px-0">
+        <div class="jumbotron-custom position-relative d-flex justify-content-center align-items-center" style="min-height:50vh;">
+            <div class="row w-100 justify-content-center position-relative">
+                <div class="col-10 col-sm-8 col-md-6 col-lg-5">
+                    <div class="position-relative">
+                        <input type="text" class="form-control rounded-pill py-3 ps-4 pe-5"
+                               @bind:event="oninput" @bind:get="SearchInput"
+                               @bind:set="FilterProductsByName" placeholder="Search for Food Items!">
+                        <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-4"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+
     <RadzenStack Orientation="Orientation.Vertical" Gap="1.5rem" class="px-4 m-2">
 
-    <RadzenStack Orientation="Orientation.Horizontal"
-                 Gap="0.5rem"
-                 JustifyContent="JustifyContent.Center">
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     Gap="0.5rem"
+                     JustifyContent="JustifyContent.Center">
 
-        <RadzenButton Text="All"
-                      Click="() => FilterProductsById(0)"
-                      ButtonStyle="@(SelectedCategoryId == 0 ? ButtonStyle.Primary : ButtonStyle.Light)"
-                      Size="ButtonSize.Small" />
-
-        @foreach (var cat in Categories)
-        {
-            <RadzenButton Text="@cat.Name"
-                          Click="() => FilterProductsById(cat.Id)"
-                          ButtonStyle="@(SelectedCategoryId == cat.Id ? ButtonStyle.Primary : ButtonStyle.Light)"
+            <RadzenButton Text="All"
+                          Click="() => FilterProductsById(0)"
+                          ButtonStyle="@(SelectedCategoryId == 0 ? ButtonStyle.Primary : ButtonStyle.Light)"
                           Size="ButtonSize.Small" />
-        }
-    </RadzenStack>
 
-        <RadzenRow class="rz-mt-4 rz-px-4">
-        @foreach (var prod in FilteredProducts)
-        {
-            <RadzenStack JustifyContent="JustifyContent.Center" >
-                <RadzenColumn Size="12" SizeMd="4" SizeLg="4"
-                                  class="pe-3 mb-5" Style="width: 350px; height: 450px">
-                    <RadzenCard Style="display:flex; flex-direction:column; height:100%; overflow: hidden;">
-
-                        <RadzenStack 
-                                Orientation="Orientation.Horizontal"
-                                Style="height:100px; overflow:hidden;" class="rz-mb-1">
-
-                            @if (!string.IsNullOrEmpty(prod.SpecialTag))
-                            {
-                                <RadzenButton Variant="Variant.Outlined" Text="@prod.SpecialTag"
-                                              ButtonStyle="ButtonStyle.Success" Icon="grade" Size="ButtonSize.ExtraSmall" />
-                            }
-                        </RadzenStack>
-
-                        <RadzenStack>
-                            <RadzenText 
-                                TextStyle="TextStyle.H5" TextAlign="TextAlign.Center" class="rz-mb-1">
-                                @prod.Name
-                            </RadzenText>
-                        </RadzenStack>
-
-                        <RadzenStack Style="height:500px; overflow:hidden; justify-content:center;">
-                            <RadzenImage 
-                                Path="@(prod.ImageUrl ?? "/images/default.png")"
-                                Style="width:100%; height:100%; object-fit:contain;" />
-                        </RadzenStack>
-                        
-                        <RadzenStack 
-                            Style="height:80px; overflow:auto; justify-content:center;"
-                            class="rz-mb-1">
-                            <RadzenText TextStyle="TextStyle.Subtitle2" Text="@prod.Price.ToString("C")"
-                                        TextAlign="TextAlign.Center" class="rz-mt-1" />
-                        </RadzenStack>
-
-                        <RadzenStack 
-                                     Style="height:160px; overflow:auto; justify-content:center;"
-                                     class="rz-mb-1">
-                            <RadzenText TextAlign="TextAlign.Center"
-                                        class="rz-py-2"
-                                            Style="width:100%; height:100%; object-fit:cover; overflow-y:auto;">
-                                @prod.Description
-                            </RadzenText>
-                        </RadzenStack>
-
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
-                            <RadzenButton Icon="shopping_cart" Text="Add to cart"
-                                           ButtonStyle="ButtonStyle.Success"
-                                          Click="@(() => AddToCartAsync(prod))" />
-                        </RadzenStack>
-
-                    </RadzenCard>
-                </RadzenColumn>
-            </RadzenStack>
+            @foreach (var cat in Categories)
+            {
+                <RadzenButton Text="@cat.Name"
+                              Click="() => FilterProductsById(cat.Id)"
+                              ButtonStyle="@(SelectedCategoryId == cat.Id ? ButtonStyle.Primary : ButtonStyle.Light)"
+                              Size="ButtonSize.Small" />
             }
-    </RadzenRow>
-    
+        </RadzenStack>
 
-</RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" JustifyContent="JustifyContent.Center">
+            <RadzenRow >
+                @foreach (var prod in FilteredProducts)
+                {
+                    <RadzenStack JustifyContent="JustifyContent.Center">
+                        <RadzenColumn Size="12" SizeMd="4" SizeLg="4"
+                                      class="pe-3 mb-5 mx-auto" Style="width: 350px; height: 450px">
+                            <RadzenCard Style="display:flex; flex-direction:column; height:100%; overflow: hidden;">
+
+                                <RadzenStack Orientation="Orientation.Horizontal"
+                                             Style="height:100px; overflow:hidden;" class="rz-mb-1">
+
+                                    @if (!string.IsNullOrEmpty(prod.SpecialTag))
+                                    {
+                                        <RadzenButton Variant="Variant.Outlined" Text="@prod.SpecialTag"
+                                                      ButtonStyle="ButtonStyle.Success" Icon="grade" Size="ButtonSize.ExtraSmall" />
+                                    }
+                                </RadzenStack>
+
+                                <RadzenStack>
+                                    <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Center" class="rz-mb-1">
+                                        @prod.Name
+                                    </RadzenText>
+                                </RadzenStack>
+
+                                <RadzenStack Style="height:500px; overflow:hidden; justify-content:center;">
+                                    <RadzenImage Path="@(prod.ImageUrl ?? "/images/default.png")"
+                                                 Style="width:100%; height:100%; object-fit:contain;" />
+                                </RadzenStack>
+
+                                <RadzenStack Style="height:80px; overflow:auto; justify-content:center;"
+                                             class="rz-mb-1">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" Text="@prod.Price.ToString("C")"
+                                                TextAlign="TextAlign.Center" class="rz-mt-1" />
+                                </RadzenStack>
+
+                                <RadzenStack Style="height:160px; overflow:auto; justify-content:center;"
+                                             class="rz-mb-1">
+                                    <RadzenText TextAlign="TextAlign.Center"
+                                                class="rz-py-2"
+                                                Style="width:100%; height:100%; object-fit:cover; overflow-y:auto;">
+                                        @prod.Description
+                                    </RadzenText>
+                                </RadzenStack>
+
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+                                    <RadzenButton Icon="shopping_cart" Text="Add to cart"
+                                                  ButtonStyle="ButtonStyle.Success"
+                                                  Click="@(() => AddToCartAsync(prod))" />
+                                </RadzenStack>
+
+                            </RadzenCard>
+                        </RadzenColumn>
+                    </RadzenStack>
+                }
+            </RadzenRow>
+        </RadzenStack>
+        
+
+    </RadzenStack>
 }
 
 
