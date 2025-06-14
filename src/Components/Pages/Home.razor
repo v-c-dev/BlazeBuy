@@ -40,54 +40,91 @@ else
                 </div>
             </div>
         </div>
-
-        <div class="content px-4 m-2">
-            <ul class="nav nav-underline justify-content-center mb-2">
-                <li class="nav-item">
-                    <span class="nav-link @GetActiveTabClass(0)" href="#" style="cursor: pointer" @onclick="() => FilterProductsById(0)">All</span>
-                </li>
-                @foreach (var cat in Categories)
-                {
-                    <li class="nav-item">
-                        <span class="nav-link @GetActiveTabClass(cat.Id)" href="#" style="cursor: pointer" @onclick="() => FilterProductsById(cat.Id)">@cat.Name</span>
-                    </li>
-                }
-            </ul>
-            <div class="row mt-4 mx-1">
-                @foreach (var prod in FilteredProducts)
-                {
-                    <div class="col-12 col-md-6 col-lg-4 pe-3 mb-5">
-                        <div class="card">
-                            <div class="mt-3 mb-2 row">
-                                <div class="col-6 px-3">
-                                    @if (!string.IsNullOrEmpty(prod.SpecialTag))
-                                    {
-                                        <i class="bi bi-star btn btn-outline-success disabled">@prod.SpecialTag</i>
-                                    }
-                                </div>
-                                <div class="col-6 text-end text-danger h4 px-3">
-                                    @prod.Price
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <img class="card-img-top img-thumbnail img-rounded w-50 mt-2" src="@(prod.ImageUrl != null ? prod.ImageUrl : "images/default.png")" style="">
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title text-center lead text-success">@prod.Name</h5>
-                                <p class="card-text mt-2">@((MarkupString)@prod.Description)</p>
-                                <h4 class="text-center">
-                                    <div class="m-lg-auto p-2" @onclick="() => AddToCartAsync(prod)">
-                                        <i class="bi bi-cart3 btn btn-success text-right  px-5 form-control"> Add to cart</i>
-                                    </div>
-
-                                </h4>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
     </div>
+
+    <RadzenStack Orientation="Orientation.Vertical" Gap="1.5rem" class="px-4 m-2">
+
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 Gap="0.5rem"
+                 JustifyContent="JustifyContent.Center">
+
+        <RadzenButton Text="All"
+                      Click="() => FilterProductsById(0)"
+                      ButtonStyle="@(SelectedCategoryId == 0 ? ButtonStyle.Primary : ButtonStyle.Light)"
+                      Size="ButtonSize.Small" />
+
+        @foreach (var cat in Categories)
+        {
+            <RadzenButton Text="@cat.Name"
+                          Click="() => FilterProductsById(cat.Id)"
+                          ButtonStyle="@(SelectedCategoryId == cat.Id ? ButtonStyle.Primary : ButtonStyle.Light)"
+                          Size="ButtonSize.Small" />
+        }
+    </RadzenStack>
+
+        <RadzenRow class="rz-mt-4 rz-px-4">
+        @foreach (var prod in FilteredProducts)
+        {
+            <RadzenStack JustifyContent="JustifyContent.Center" >
+                <RadzenColumn Size="12" SizeMd="4" SizeLg="4"
+                                  class="pe-3 mb-5" Style="width: 350px; height: 450px">
+                    <RadzenCard Style="display:flex; flex-direction:column; height:100%; overflow: hidden;">
+
+                        <RadzenStack 
+                                Orientation="Orientation.Horizontal"
+                                Style="height:100px; overflow:hidden;" class="rz-mb-1">
+
+                            @if (!string.IsNullOrEmpty(prod.SpecialTag))
+                            {
+                                <RadzenButton Variant="Variant.Outlined" Text="@prod.SpecialTag"
+                                              ButtonStyle="ButtonStyle.Success" Icon="grade" Size="ButtonSize.ExtraSmall" />
+                            }
+                        </RadzenStack>
+
+                        <RadzenStack>
+                            <RadzenText 
+                                TextStyle="TextStyle.H5" TextAlign="TextAlign.Center" class="rz-mb-1">
+                                @prod.Name
+                            </RadzenText>
+                        </RadzenStack>
+
+                        <RadzenStack Style="height:500px; overflow:hidden; justify-content:center;">
+                            <RadzenImage 
+                                Path="@(prod.ImageUrl ?? "/images/default.png")"
+                                Style="width:100%; height:100%; object-fit:contain;" />
+                        </RadzenStack>
+                        
+                        <RadzenStack 
+                            Style="height:80px; overflow:auto; justify-content:center;"
+                            class="rz-mb-1">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" Text="@prod.Price.ToString("C")"
+                                        TextAlign="TextAlign.Center" class="rz-mt-1" />
+                        </RadzenStack>
+
+                        <RadzenStack 
+                                     Style="height:160px; overflow:auto; justify-content:center;"
+                                     class="rz-mb-1">
+                            <RadzenText TextAlign="TextAlign.Center"
+                                        class="rz-py-2"
+                                            Style="width:100%; height:100%; object-fit:cover; overflow-y:auto;">
+                                @prod.Description
+                            </RadzenText>
+                        </RadzenStack>
+
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+                            <RadzenButton Icon="shopping_cart" Text="Add to cart"
+                                           ButtonStyle="ButtonStyle.Success"
+                                          Click="@(() => AddToCartAsync(prod))" />
+                        </RadzenStack>
+
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenStack>
+            }
+    </RadzenRow>
+    
+
+</RadzenStack>
 }
 
 
@@ -105,6 +142,7 @@ else
     {
         if (firstRender)
         {
+            await LoadProducts();
             IsProcessing = false;
             StateHasChanged();
         }
