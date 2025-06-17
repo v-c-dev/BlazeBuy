@@ -9,5 +9,6 @@ namespace BlazeBuy.Services.Interfaces
         Task<Order?> GetOrderByIdAsync(int id, CancellationToken ct = default);
         Task<IReadOnlyList<Order>> GetOrderByUserIdAsync(string userId, CancellationToken ct = default);
         Task UpdateOrderStatusAsync(int orderId, OrderStatus status, CancellationToken ct = default);
+        Task<IEnumerable<Order>> GetAllOrdersAsync(string? userId = null);
     }
 }

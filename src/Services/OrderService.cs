@@ -46,7 +46,7 @@ namespace BlazeBuy.Services
             await tx.CommitAsync(ct);
 
             await cartSvc.ClearCartAsync(userId, ct);
-            await emailSvc.SendOrderConfirmationAsync(order, ct);
+            //await emailSvc.SendOrderConfirmationAsync(order, ct);
 
             return order;
         }
@@ -68,6 +68,16 @@ namespace BlazeBuy.Services
             order.Status = status;
             await orderRepo.UpdateOrderAsync(order);
             await db.SaveChangesAsync(ct);
+        }
+
+        public async Task<IEnumerable<Order>> GetAllOrdersAsync(string? userId = null)
+        {
+            if (!string.IsNullOrEmpty(userId))
+            {
+                return await db.Orders
+                    .Where(u => u.UserId == userId).ToListAsync();
+            }
+            return await db.Orders.ToListAsync();
         }
     }
 }
