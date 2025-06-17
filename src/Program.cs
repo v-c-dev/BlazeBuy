@@ -21,6 +21,7 @@ builder.Services.AddRazorComponents()
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
+var msSection = builder.Configuration.GetSection("Authentication:Microsoft");
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -42,6 +43,10 @@ builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    }).AddMicrosoftAccount(options =>
+    {
+        options.ClientId = msSection["ClientId"];
+        options.ClientSecret = msSection["ClientSecret"];
     })
     .AddIdentityCookies();
 

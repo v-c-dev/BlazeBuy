@@ -28,42 +28,52 @@
 }
 else
 {
-    <RadzenCard class="rz-my-12 rz-mx-auto">
+    <RadzenCard class="rz-my-12 rz-mx-auto"
+                Style="max-width:100vw;
+                       max-height:100vh;        /* fills phone or desktop */
+                       overflow:auto;">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+            <RadzenText TextStyle="TextStyle.H1"><strong>Product list</strong></RadzenText>
+        </RadzenStack>
 
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-p-4">
-            <RadzenText TextStyle="TextStyle.H2"><strong>Product list</strong></RadzenText>
-            <RadzenButton Icon="add_circle" Text="Add new"
-                          ButtonStyle="ButtonStyle.Primary"
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" class="rz-mb-2 rz-px-4">
+            <RadzenButton Text="Add new" Icon="add_circle" ButtonStyle="ButtonStyle.Primary"
                           Click="@(() => _navigationManager.NavigateTo("/products/create"))" />
         </RadzenStack>
 
-        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8"
+                    style="margin:1rem calc(-1*var(--rz-card-padding));">
 
             @if (Products.Any())
             {
-                <RadzenDataGrid Data="@Products" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="10" 
-                                FilterMode="FilterMode.Simple" ColumnWidth="200px">
-
-                    <Columns>
-                        <RadzenDataGridColumn Property="Name"        Title="Name"         />
-                        <RadzenDataGridColumn Property="Price"       Title="Price"        FormatString="{0:C}" />
-                        <RadzenDataGridColumn Property="Description" Title="Description"  Width="300px" />
-                        <RadzenDataGridColumn Property="Category.Name" Title="Category"   />
-                        <RadzenDataGridColumn Property="SpecialTag"  Title="Special Tag"  />
-                        <RadzenDataGridColumn Title="Actions" Width="160px" Sortable="false" Filterable="false">
-                            <Template Context="prd">
-                                <RadzenButton Icon="edit"   Size="ButtonSize.Small"
-                                              Click="@(() => _navigationManager.NavigateTo($"/products/update/{prd.Id}"))"
-                                              Style="margin-right: .5rem;" />
-                                <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
-                                              Click="@(() => PromptDelete(prd.Id))" />
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
+                <div style="overflow-x:auto;">
+                    <RadzenDataGrid Data="@Products"
+                                    AllowFiltering="true" AllowSorting="true"
+                                    AllowPaging="true" PageSize="10"
+                                    ColumnWidth="150px"
+                                    style="min-width:840px;">
+                        <Columns>
+                            <RadzenDataGridColumn Property="Name" Title="Name" />
+                            <RadzenDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" TextAlign="TextAlign.Right" />
+                            <RadzenDataGridColumn Property="Description" Title="Description" />
+                            <RadzenDataGridColumn Property="Category.Name" Title="Category" />
+                            <RadzenDataGridColumn Property="SpecialTag" Title="Special Tag" />
+                            <RadzenDataGridColumn Title="Actions" Width="160px" Sortable="false" Filterable="false">
+                                <Template Context="prd">
+                                    <RadzenButton Icon="edit" Size="ButtonSize.Small"
+                                                  Click="@(() => _navigationManager.NavigateTo($"/products/update/{prd.Id}"))"
+                                                  Style="margin-right:.5rem;" />
+                                    <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                                  Click="@(() => PromptDelete(prd.Id))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
             }
         </RadzenCard>
     </RadzenCard>
+
 }
 
 @code {
@@ -97,7 +107,7 @@ else
     
         await _productService.DeleteProductAsync(_deleteId);
 
-        //await _js.ToastrSuccess("Product deleted successfully");
+        await _js.ToastrSuccess("Product deleted successfully");
 
         _deleteId = 0;
         await _js.InvokeVoidAsync("HideConfirmationModal");
