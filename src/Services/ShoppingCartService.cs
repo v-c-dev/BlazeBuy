@@ -57,5 +57,36 @@ namespace BlazeBuy.Services
                 .Where(c => c.UserId == userId)
                 .SumAsync(c => (int?)c.Quantity, ct) ?? 0;
         }
+
+        public async Task<bool> UpdateCartAsync(string userId, int productId, int deltaQty, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || deltaQty == 0)  // nothing to do
+                return false;
+
+            var cartItem = await db.ShoppingCarts
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId, ct);
+
+            if (cartItem is null)
+            {
+                if (deltaQty <= 0) return false; // can’t decrement something that isn’t there
+
+                db.ShoppingCarts.Add(new ShoppingCart
+                {
+                    UserId = userId,
+                    ProductId = productId,
+                    Quantity = deltaQty
+                });
+            }
+            else
+            {
+                cartItem.Quantity += deltaQty;
+
+                if (cartItem.Quantity <= 0)
+                    db.ShoppingCarts.Remove(cartItem);
+            }
+
+            return await db.SaveChangesAsync(ct) > 0;
+        }
+
     }
 }
