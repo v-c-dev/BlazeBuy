@@ -5,7 +5,7 @@ namespace BlazeBuy.Repositories.Interfaces
 {
     public interface IOrderRepository
     {
-        Task CreateOrderAsync(Order order, CancellationToken ct = default);
+        Task<Order> CreateOrderAsync(Order order, CancellationToken ct = default);
 
         Task UpdateOrderAsync(Order order, CancellationToken ct = default);
 
