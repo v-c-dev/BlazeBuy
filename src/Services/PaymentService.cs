@@ -1,4 +1,5 @@
-﻿using BlazeBuy.Models;
+﻿using System.Globalization;
+using BlazeBuy.Models;
 using BlazeBuy.Models.Enums;
 using BlazeBuy.Repositories.Interfaces;
 using BlazeBuy.Services.Interfaces;
@@ -18,35 +19,34 @@ namespace BlazeBuy.Services
             _orderService = orderService;
         }
 
-        public Session CreateStripeCheckoutSession(Order order)
+        public async Task<Session> CreateStripeCheckoutSessionAsync(
+            Order order, CancellationToken ct = default)
         {
-            var lineItems = order.Items
-                .Select(order => new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        Currency = "usd",
-                        UnitAmountDecimal = (decimal?)(order.UnitPrice * 100),
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = order.ProductName,
-                        }
-                    },
-                    Quantity = order.Quantity,
-                }).ToList();
-
-
-            var options = new Stripe.Checkout.SessionCreateOptions
+            var items = order.Items.Select(i => new SessionLineItemOptions
             {
+                Quantity = i.Quantity,
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = "usd",
+                    UnitAmount = (long)(i.UnitPrice * 100),   // cents ✔
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = i.ProductName
+                    }
+                }
+            }).ToList();
+
+            var options = new SessionCreateOptions
+            {
+                Mode = "payment",
+                LineItems = items,
                 SuccessUrl = $"{_navigationManager.BaseUri}order/confirmation/{{CHECKOUT_SESSION_ID}}",
                 CancelUrl = $"{_navigationManager.BaseUri}cart",
-                LineItems = lineItems,
-                Mode = "payment",
+                CustomerEmail = order.Email,
+                Metadata = new() { ["orderId"] = order.Id.ToString() }
             };
-            var service = new SessionService();
-            var session = service.Create(options);
 
-            return session;
+            return await new SessionService().CreateAsync(options, null, ct);   // async ✔
         }
 
         public async Task<Order> CheckOrderStatusAndUpdateOrder(string sessionId)

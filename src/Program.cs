@@ -11,6 +11,7 @@ using Radzen.Blazor;
 using BlazeBuy.Repositories.Interfaces;
 using BlazeBuy.Repositories;
 using Radzen;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +34,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductService, BlazeBuy.Services.ProductService>();
 builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -64,7 +65,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
-
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("StripeApiKey").Value;
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

@@ -8,9 +8,11 @@ namespace BlazeBuy.Repositories
 {
     internal sealed class OrderRepository(ApplicationDbContext db) : IOrderRepository
     {
-        public async Task CreateOrderAsync(Order order, CancellationToken ct = default)
+        public async Task<Order> CreateOrderAsync(Order order, CancellationToken ct = default)
         {
             await db.Orders.AddAsync(order, ct);
+            await db.SaveChangesAsync(ct);
+            return order;
         }
 
         public Task UpdateOrderAsync(Order order, CancellationToken ct = default)

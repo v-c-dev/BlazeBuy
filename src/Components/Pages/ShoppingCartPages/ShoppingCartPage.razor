@@ -213,20 +213,21 @@ else
     private async Task ProcessOrderCreation()
     {
         IsProcessing = true;
+
+        order.Items = CartExtensions.ToOrderItems(shoppingCart.ToList());
+
         try
         {
-            await Task.Yield();
-            order.Items = CartExtensions.ToOrderItems(shoppingCart.ToList());
-
-            var session = _paymentService.CreateStripeCheckoutSession(order);
+            var session = await _paymentService.CreateStripeCheckoutSessionAsync(order);
             order.SessionId = session.Id;
-            await _orderService.CreateOrderAsync(order);
+            await _orderService.UpdateOrderAsync(order);
+            order = await _orderService.CreateOrderAsync(order);
+
             _navigationManager.NavigateTo(session.Url);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Console.WriteLine(e.Message);
-            throw;
+            await _jsRuntime.ToastrError($"Stripe error: {ex.Message}");
         }
     }
 }
