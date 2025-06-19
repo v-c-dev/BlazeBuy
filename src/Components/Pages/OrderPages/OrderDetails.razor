@@ -1,0 +1,168 @@
+﻿@page "/order/details/{Id:int}"
+@using BlazeBuy.Models
+@using BlazeBuy.Models.Enums
+@using BlazeBuy.Services.Interfaces
+@rendermode InteractiveServer
+
+@inject IOrderService _orderService
+@inject IJSRuntime _jsRuntime
+@inject AuthenticationStateProvider _auth
+@inject NavigationManager _nav
+
+<PageTitle>Order Details</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   Value="100" ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else if (order is not null)
+{
+    <RadzenCard Class="rz-my-10 rz-mx-auto" Style="max-width:950px">
+        <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" Class="rz-p-4">
+
+            <RadzenText Text="ORDER DETAILS"
+                        TextStyle="TextStyle.H4"
+                        Class="rz-text-success rz-text-center" />
+
+            
+            <RadzenTable GridLines="DataGridGridLines.Horizontal"
+                         AllowAlternatingRows="false"
+                         Class="rz-shadow-0 rz-border-radius-0 rz-w-25">
+
+                <RadzenTableHeader>
+                    <RadzenTableHeaderRow>
+                        
+                    </RadzenTableHeaderRow>
+                </RadzenTableHeader>
+
+                <RadzenTableBody>
+                    <RadzenTableRow>
+                        <RadzenTableCell>Order Id</RadzenTableCell>
+                        <RadzenTableCell>@order.Id</RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>Name</RadzenTableCell>
+                        <RadzenTableCell>@order.Name</RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>Email</RadzenTableCell>
+                        <RadzenTableCell>@order.Email</RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>Phone</RadzenTableCell>
+                        <RadzenTableCell>@order.PhoneNumber</RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>Status</RadzenTableCell>
+                        <RadzenTableCell>@order.Status</RadzenTableCell>
+                    </RadzenTableRow>
+                </RadzenTableBody>
+            </RadzenTable>
+
+            <RadzenCard>
+                <RadzenText Text="Items" TextStyle="TextStyle.H4" Class="rz-text-success" />
+
+                <RadzenStack JustifyContent="JustifyContent.Center">
+                    <RadzenDataGrid Data="@order.Items" ColumnWidth="120px" AllowPaging="false" Class="rz-mt-2"
+                                    Style="width:100%;min-width:500px; overflow-x:auto">
+                        <Columns>
+                            <RadzenDataGridColumn Property="ProductName" Title="Product" />
+                            <RadzenDataGridColumn Property="UnitPrice" Title="Unit Price" FormatString="{0:C}"/>
+                            <RadzenDataGridColumn Property="Quantity" Title="Qty"/>
+                            <RadzenDataGridColumn Title="Line Total" >
+                                <Template Context="it">
+                                    @((it.UnitPrice * it.Quantity).ToString("C"))
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenStack>
+
+
+                <RadzenStack Orientation="Orientation.Horizontal" Class="rz-mt-4">
+                    <RadzenText Text="Grand Total: " TextStyle="TextStyle.H6" Class="rz-text-success rz-text-end"/>
+                    <RadzenText TextStyle="TextStyle.H6" Class="rz-text-success rz-text-end">
+                        @order.Total
+                    </RadzenText>
+                </RadzenStack>
+                            
+                
+
+            </RadzenCard>
+
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" 
+                         JustifyContent="JustifyContent.SpaceBetween">
+
+                <RadzenButton Text="Back to Orders"ButtonStyle="ButtonStyle.Secondary"
+                              Click="GoToOrderList" />
+
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        @if (order.Status != OrderStatus.Cancelled && order.Status != OrderStatus.Completed)
+                        {
+                            <RadzenButton Text="Cancel"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Click="() => ChangeStatus(OrderStatus.Cancelled)" />
+
+                            @if (order.Status == OrderStatus.Approved)
+                            {
+                                <RadzenButton Text="Sent"
+                                              ButtonStyle="ButtonStyle.Primary"
+                                              Click="() => ChangeStatus(OrderStatus.Sent)" />
+                            }
+                            @if (order.Status == OrderStatus.Sent)
+                            {
+                                <RadzenButton Text="Completed"
+                                              ButtonStyle="ButtonStyle.Success"
+                                              Click="() => ChangeStatus(OrderStatus.Completed)" />
+                            }
+                        }
+                    </Authorized>
+                </AuthorizeView>
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool IsProcessing { get; set; } = true;
+    private Order? order;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadOrderAsync();
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadOrderAsync()
+    {
+        order = await _orderService.GetOrderByIdAsync(Id);
+    }
+
+    private async Task ChangeStatus(OrderStatus newStatus)
+    {
+        await _orderService.UpdateOrderStatusAsync(order!.Id, newStatus, null);
+        order.Status = newStatus;
+        await _jsRuntime.ToastrSuccess($"Order status updated to {newStatus}");
+    }
+
+    private void GoToOrderList()
+    {
+        _nav.NavigateTo("/order/list");
+    }
+}

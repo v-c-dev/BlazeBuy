@@ -1,0 +1,114 @@
+﻿@page "/order/list"
+@using System.Security.Claims
+@using BlazeBuy.Models
+@using BlazeBuy.Models.Enums
+@using BlazeBuy.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveServer
+@inject IJSRuntime _jsRuntime
+@inject IOrderService _orderService
+@inject NavigationManager _navigationManager
+@inject AuthenticationStateProvider _AuthenticationStateProvider
+
+@* @attribute [Authorize] *@
+
+<PageTitle>Order List</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   Value="100" ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <RadzenCard class="rz-my-12 rz-mx-auto">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-p-4">
+            <RadzenStack Gap="0">
+                <RadzenText TextStyle="TextStyle.H2" class="rz-display-flex rz-mt-2 rz-my-0"><strong>Order List</strong></RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+        <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+            @if (orders.Any())
+            {
+                <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                Data="@orders" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single">
+                    <Columns>
+                        <RadzenDataGridColumn Property="Id" Filterable="true" Title="ID" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn Property="Name" Title="Name" Frozen="true" Width="160px" />
+                        <RadzenDataGridColumn Property="PhoneNumber" Title="Phone Number" Width="160px" />
+                        <RadzenDataGridColumn Property="Email" Title="Email" Width="200px" />
+                        <RadzenDataGridColumn Property="OrderTotal" Title="Order Total" FormatString="{0:C}" Width="120px" />
+                        <RadzenDataGridColumn Property="OrderDate" Title="Order Date" FormatString="{0:d}" Width="160px" />
+                        <RadzenDataGridColumn Property="Status" Title="Status" FormatString="{0:d}" Width="160px" />
+                        <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
+                            <Template Context="orderHeaders">
+                                <RadzenButton Shade="Shade.Lighter" Text="Details" ButtonStyle="ButtonStyle.Primary"
+                                              Click="@(()=>_navigationManager.NavigateTo($"/order/details/{orderHeaders.Id}"))"></RadzenButton>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+        </RadzenCard>
+    </RadzenCard>
+}
+
+@code {
+    private bool IsProcessing { get; set; } = true;
+    private IEnumerable<Order> orders { get; set; } = new List<Order>();
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
+    private bool? isAdmin { get; set; }
+    private string? userId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadOrderHeaders();
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadOrderHeaders()
+    {
+        IsProcessing = true;
+        StateHasChanged();
+
+        await CheckAuthentication();
+        if (isAdmin == true)
+        {
+            orders = await _orderService.GetAllOrdersAsync();
+        }
+        else
+        {
+            orders = await _orderService.GetAllOrdersAsync(userId);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task CheckAuthentication()
+    {
+        if (AuthenticationState is not null)
+        {
+            var authState = await AuthenticationState;
+            var user = authState.User;
+
+            isAdmin = user.IsInRole(UserRole.Admin.ToString());
+            userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+    }
+}
