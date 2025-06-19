@@ -6,8 +6,10 @@ namespace BlazeBuy.Services
     {
         private readonly IShoppingCartService _cartSvc;
 
-        public SharedStateService(IShoppingCartService cartSvc) =>
+        public SharedStateService(IShoppingCartService cartSvc)
+        {
             _cartSvc = cartSvc;
+        }
 
         public event Action<int>? CartCountChanged;
 
