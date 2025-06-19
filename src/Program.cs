@@ -38,6 +38,7 @@ builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<SharedStateService>();
+builder.Services.AddScoped<PaymentService>();
 
 builder.Services.AddAuthentication(options =>
     {

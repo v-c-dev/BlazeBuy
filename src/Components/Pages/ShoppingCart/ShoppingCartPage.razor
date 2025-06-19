@@ -14,6 +14,7 @@
 @inject IOrderService _orderService
 @inject IShoppingCartService _cartService
 @inject SharedStateService _sharedStateService
+@inject PaymentService _paymentService
 
 
 <PageTitle>Shopping Cart</PageTitle>
@@ -211,6 +212,21 @@ else
 
     private async Task ProcessOrderCreation()
     {
-        
+        IsProcessing = true;
+        try
+        {
+            await Task.Yield();
+            order.Items = CartExtensions.ToOrderItems(shoppingCart.ToList());
+
+            var session = _paymentService.CreateStripeCheckoutSession(order);
+            order.SessionId = session.Id;
+            await _orderService.CreateOrderAsync(order);
+            _navigationManager.NavigateTo(session.Url);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            throw;
+        }
     }
 }
