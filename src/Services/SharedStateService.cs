@@ -4,6 +4,7 @@ namespace BlazeBuy.Services
 {
     public sealed class SharedStateService
     {
+        public event Action OnStateChange;
         private readonly IShoppingCartService _cartSvc;
 
         public SharedStateService(IShoppingCartService cartSvc)
@@ -36,5 +37,6 @@ namespace BlazeBuy.Services
             Interlocked.Add(ref _totalCartCount, delta);
             CartCountChanged?.Invoke(_totalCartCount);
         }
+        private void NotifyStateChanged() => OnStateChange?.Invoke();
     }
 }

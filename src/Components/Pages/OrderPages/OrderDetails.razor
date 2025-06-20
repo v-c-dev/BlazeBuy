@@ -32,7 +32,7 @@ else if (order is not null)
             
             <RadzenTable GridLines="DataGridGridLines.Horizontal"
                          AllowAlternatingRows="false"
-                         Class="rz-shadow-0 rz-border-radius-0 rz-w-25">
+                         Class="rz-shadow-0 rz-border-radius-0 ">
 
                 <RadzenTableHeader>
                     <RadzenTableHeaderRow>
@@ -68,12 +68,12 @@ else if (order is not null)
                 </RadzenTableBody>
             </RadzenTable>
 
-            <RadzenCard>
+            <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" Style="margin:1rem calc(-1*var(--rz-card-padding));">
                 <RadzenText Text="Items" TextStyle="TextStyle.H4" Class="rz-text-success" />
 
                 <RadzenStack JustifyContent="JustifyContent.Center">
-                    <RadzenDataGrid Data="@order.Items" ColumnWidth="120px" AllowPaging="false" Class="rz-mt-2"
-                                    Style="width:100%;min-width:500px; overflow-x:auto">
+                    <RadzenDataGrid Data="@order.Items" ColumnWidth="150px" AllowPaging="false" Class="rz-mt-2"
+                                    Style="width:100%;overflow-x:auto;">
                         <Columns>
                             <RadzenDataGridColumn Property="ProductName" Title="Product" />
                             <RadzenDataGridColumn Property="UnitPrice" Title="Unit Price" FormatString="{0:C}"/>
