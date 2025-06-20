@@ -34,20 +34,23 @@ else
         <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
             @if (orders.Any())
             {
-                <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
-                                Data="@orders" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single">
+                <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced"
+                                AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left"
+                                ShowPagingSummary="true" Data="@orders" ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.Or"
+                                SelectionMode="DataGridSelectionMode.Single">
                     <Columns>
-                        <RadzenDataGridColumn Property="Id" Filterable="true" Title="ID" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn Property="Name" Title="Name" Frozen="true" Width="160px" />
+                        <RadzenDataGridColumn Property="Id" Filterable="true" Title="ID" Frozen="true" Width="30" />
+                        <RadzenDataGridColumn Property="Name" Title="Name" Frozen="true" />
                         <RadzenDataGridColumn Property="PhoneNumber" Title="Phone Number" Width="160px" />
                         <RadzenDataGridColumn Property="Email" Title="Email" Width="200px" />
-                        <RadzenDataGridColumn Property="OrderTotal" Title="Order Total" FormatString="{0:C}" Width="120px" />
-                        <RadzenDataGridColumn Property="OrderDate" Title="Order Date" FormatString="{0:d}" Width="160px" />
+                        <RadzenDataGridColumn Property="Total" Title="Order Total" FormatString="{0:C}" Width="120px" />
+                        <RadzenDataGridColumn Property="CreatedUtc" Title="Order Date" FormatString="{0:d}" Width="160px" />
                         <RadzenDataGridColumn Property="Status" Title="Status" FormatString="{0:d}" Width="160px" />
                         <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
-                            <Template Context="orderHeaders">
-                                <RadzenButton Shade="Shade.Lighter" Text="Details" ButtonStyle="ButtonStyle.Primary"
-                                              Click="@(()=>_navigationManager.NavigateTo($"/order/details/{orderHeaders.Id}"))"></RadzenButton>
+                            <Template Context="orders">
+                                <RadzenButton Text="Details" ButtonStyle="ButtonStyle.Primary"
+                                              Click="@(() => _navigationManager.NavigateTo($"/order/details/{orders.Id}"))"
+                                              Size="ButtonSize.Small" Variant="Variant.Flat" />
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -69,7 +72,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-
+       
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -96,7 +99,6 @@ else
         {
             orders = await _orderService.GetAllOrdersAsync(userId);
         }
-
         StateHasChanged();
     }
 
@@ -107,7 +109,7 @@ else
             var authState = await AuthenticationState;
             var user = authState.User;
 
-            isAdmin = user.IsInRole(UserRole.Admin.ToString());
+            isAdmin = user.IsInRole(UserRoles.Admin.ToString());
             userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
     }
