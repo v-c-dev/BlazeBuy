@@ -3,7 +3,7 @@
 @inject AuthenticationStateProvider _authStateProvider
 
 <div class="page">
-    <AuthorizeView Roles="@nameof(UserRole.Admin)">
+    <AuthorizeView Roles="@nameof(UserRoles.Admin)">
         <div class="sidebar">
             <NavMenu/>
         </div>
@@ -49,6 +49,6 @@
         var userAuth = authState.User;
         var isAuth = userAuth.Identity.IsAuthenticated && userAuth.Identity is not null;
 
-        return (!isAuth || !userAuth.IsInRole(nameof(UserRole.Admin))) ? true : false;
+        return (!isAuth || !userAuth.IsInRole(nameof(UserRoles.Admin))) ? true : false;
     }
 }

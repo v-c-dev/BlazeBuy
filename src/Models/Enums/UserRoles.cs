@@ -1,6 +1,6 @@
 ﻿namespace BlazeBuy.Models.Enums
 {
-    public enum UserRole
+    public enum UserRoles
     {
         Admin,
         Customer

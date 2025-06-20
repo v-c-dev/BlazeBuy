@@ -28,10 +28,7 @@
 }
 else
 {
-    <RadzenCard class="rz-my-12 rz-mx-auto"
-                Style="max-width:100vw;
-                       max-height:100vh;        /* fills phone or desktop */
-                       overflow:auto;">
+    <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width:100vw; max-height:100vh; overflow:auto;">
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
             <RadzenText TextStyle="TextStyle.H1"><strong>Product list</strong></RadzenText>
         </RadzenStack>
@@ -47,10 +44,8 @@ else
             @if (Products.Any())
             {
                 <div style="overflow-x:auto;">
-                    <RadzenDataGrid Data="@Products"
-                                    AllowFiltering="true" AllowSorting="true"
-                                    AllowPaging="true" PageSize="10"
-                                    ColumnWidth="150px"
+                    <RadzenDataGrid Data="@Products" AllowFiltering="true" AllowSorting="true"
+                                    AllowPaging="true" PageSize="10" ColumnWidth="150px"
                                     style="min-width:840px;">
                         <Columns>
                             <RadzenDataGridColumn Property="Name" Title="Name" />

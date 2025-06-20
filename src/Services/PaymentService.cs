@@ -1,10 +1,11 @@
-﻿using System.Globalization;
-using BlazeBuy.Models;
+﻿using BlazeBuy.Models;
 using BlazeBuy.Models.Enums;
 using BlazeBuy.Repositories.Interfaces;
 using BlazeBuy.Services.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Stripe.Checkout;
+using System.Globalization;
+using System.Runtime.Intrinsics.Arm;
 
 namespace BlazeBuy.Services
 {
@@ -51,15 +52,23 @@ namespace BlazeBuy.Services
 
         public async Task<Order> CheckOrderStatusAndUpdateOrder(string sessionId)
         {
-            Order order = await _orderService.GetOrderBySessionIdAsync(sessionId);
             var service = new SessionService();
             var session = service.Get(sessionId);
 
+            for (int i = 0; i < 5; i++)
+            {
+                session = await service.GetAsync(sessionId);
+                if (session.PaymentStatus == "paid") break;
+                await Task.Delay(400);
+            }
+
+            Order order = await _orderService.GetOrderBySessionIdAsync(sessionId);
             if (session.PaymentStatus.ToLower() == "paid")
             {
                 await _orderService.UpdateOrderStatusAsync(order.Id,
                     OrderStatus.Approved,
                     session.PaymentIntentId);
+                order.Status = OrderStatus.Approved;
             }
 
             return order;

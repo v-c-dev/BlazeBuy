@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Pages\OrderPages\" />
     <Folder Include="Extensions\Email\" />
     <Folder Include="Services\DTOs\" />
     <Folder Include="wwwroot\images\products\" />
