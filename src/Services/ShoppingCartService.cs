@@ -36,10 +36,13 @@ namespace BlazeBuy.Services
             await db.SaveChangesAsync(ct);
         }
 
-        public async Task ClearCartAsync(string userId, CancellationToken ct = default)
+        public async Task<bool> ClearCartAsync(string userId, CancellationToken ct = default)
         {
-            db.ShoppingCarts.RemoveRange(db.ShoppingCarts.Where(c => c.UserId == userId));
-            await db.SaveChangesAsync(ct);
+            bool test = false;
+            var cartItems = await db.ShoppingCarts.Where(c => c.UserId == userId).ToListAsync();
+            db.ShoppingCarts.RemoveRange(cartItems);
+            test = await db.SaveChangesAsync(ct) > 0 ? true : false;
+            return test;
         }
 
         public async Task<IReadOnlyList<ShoppingCart>> GetCartAsync(string userId, CancellationToken ct = default)
