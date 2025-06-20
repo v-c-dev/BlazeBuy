@@ -6,10 +6,12 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BlazeBuy.Data
+@using BlazeBuy.Models.Enums
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
+@inject RoleManager<IdentityRole> RoleManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
@@ -41,6 +43,15 @@
                 <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
                 <label for="Input.ConfirmPassword">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputSelect type="role" @bind-Value="Input.Role" id="Input.Role" class="form-control" autocomplete="role" aria-required="true" placeholder="Role">
+                    @foreach (var role in Enum.GetValues(typeof(UserRoles)))
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </InputSelect>
+                <label for="Input.Role">Role</label>
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
@@ -80,26 +91,49 @@
             return;
         }
 
-        Logger.LogInformation("User created a new account with password.");
-
-        var userId = await UserManager.GetUserIdAsync(user);
-        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
-
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-        if (UserManager.Options.SignIn.RequireConfirmedAccount)
+        try
         {
-            RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
-        }
+            Logger.LogInformation("User created a new account with password.");
 
-        await SignInManager.SignInAsync(user, isPersistent: false);
-        RedirectManager.RedirectTo(ReturnUrl);
+            if (!await RoleManager.RoleExistsAsync(UserRoles.Customer.ToString()))
+            {
+                await RoleManager.CreateAsync(new IdentityRole(UserRoles.Admin.ToString()));
+                await RoleManager.CreateAsync(new IdentityRole(UserRoles.Customer.ToString()));
+            }
+            if (Input.Role is not null)
+            {
+                await UserManager.AddToRoleAsync(user, Convert.ToString(Input.Role));
+            }
+            else
+            {
+                await UserManager.AddToRoleAsync(user, UserRoles.Customer.ToString());
+            }
+
+            var userId = await UserManager.GetUserIdAsync(user);
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+                new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+
+            await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
+            // fixed redirect error
+            if (UserManager.Options.SignIn.RequireConfirmedAccount)
+            {
+                var redirectUrl = $"/Account/RegisterConfirmation?email={Input.Email}&returnUrl={ReturnUrl}";
+                await InvokeAsync(() => NavigationManager.NavigateTo(redirectUrl, forceLoad: true));
+                return;
+            }
+
+            await SignInManager.SignInAsync(user, isPersistent: false);
+            await InvokeAsync(() => NavigationManager.NavigateTo(ReturnUrl ?? "/", forceLoad: true));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     private ApplicationUser CreateUser()
@@ -141,5 +175,9 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        //[Required]
+        [Display(Name = "Role")]
+        public UserRoles? Role { get; set; }
     }
 }

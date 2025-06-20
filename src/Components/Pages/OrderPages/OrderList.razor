@@ -5,12 +5,11 @@
 @using BlazeBuy.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
-@inject IJSRuntime _jsRuntime
 @inject IOrderService _orderService
 @inject NavigationManager _navigationManager
 @inject AuthenticationStateProvider _AuthenticationStateProvider
 
-@* @attribute [Authorize] *@
+@attribute [Authorize]
 
 <PageTitle>Order List</PageTitle>
 
