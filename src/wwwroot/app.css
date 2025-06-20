@@ -2,6 +2,23 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+.thumb-wrapper {
+    flex: 0 0 120px;
+    height: 120px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .thumb-wrapper img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        margin-top: 30px;
+        margin-left: 5px;
+    }
+
 a, .btn-link {
     color: #006bb7;
 }
