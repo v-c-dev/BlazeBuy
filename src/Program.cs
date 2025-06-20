@@ -1,7 +1,6 @@
 using BlazeBuy.Components;
 using BlazeBuy.Components.Account;
 using BlazeBuy.Data;
-using BlazeBuy.Extensions.Email;
 using BlazeBuy.Services.Interfaces;
 using BlazeBuy.Services;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -19,9 +18,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("EmailSettings"));
-
 var msSection = builder.Configuration.GetSection("Authentication:Microsoft");
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -37,7 +33,6 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, BlazeBuy.Services.ProductService>();
 builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddScoped<PaymentService>();
 
