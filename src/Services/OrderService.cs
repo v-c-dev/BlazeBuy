@@ -10,7 +10,6 @@ namespace BlazeBuy.Services
     internal sealed class OrderService(
         ApplicationDbContext db,
         IOrderRepository orderRepo,
-        IEmailService emailSvc,   // kept for future e-mail confirmation use
         ILogger<OrderService> log) : IOrderService
     {
         public async Task<Order> CreateOrderAsync(Order order, CancellationToken ct = default)
