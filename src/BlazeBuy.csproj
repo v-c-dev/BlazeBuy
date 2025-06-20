@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\Email\" />
     <Folder Include="Services\DTOs\" />
     <Folder Include="wwwroot\images\products\" />
   </ItemGroup>

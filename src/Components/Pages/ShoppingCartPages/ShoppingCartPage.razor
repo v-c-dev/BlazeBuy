@@ -6,8 +6,6 @@
 @using BlazeBuy.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
-@inject IProductService _productService
-@inject ICategoryService _categoryService
 @inject AuthenticationStateProvider _authenticationStateProvider
 @inject IJSRuntime _jsRuntime
 @inject NavigationManager _navigationManager
@@ -15,6 +13,8 @@
 @inject IShoppingCartService _cartService
 @inject SharedStateService _sharedStateService
 @inject PaymentService _paymentService
+
+@attribute [Authorize]
 
 
 <PageTitle>Shopping Cart</PageTitle>
