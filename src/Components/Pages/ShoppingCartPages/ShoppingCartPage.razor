@@ -42,8 +42,11 @@ else
                     @foreach (var item in shoppingCart)
                     {
                         <div class="d-flex p-2 m-2">
-                            <div class="card flex-row w-100">
-                                <img class="card-img-left" style="width: 120px; height: 80px; margin-top: 30px" src="@(item.Product.ImageUrl ?? "/images/default.png")">
+                            <div class="card flex-row w-100 object-fit:contain;">
+                                <div class="thumb-wrapper">
+                                    <img src="@(item.Product.ImageUrl ?? "/images/default.png")"
+                                         alt="@item.Product.Name" />
+                                </div>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h4 class="">
@@ -120,7 +123,7 @@ else
                         </div>
 
                         <button class="btn btn-success m-4">
-                            Looks Good? Place Order!
+                            Place Order
                         </button>
                     </EditForm>
                 </div>
@@ -138,6 +141,7 @@ else
         </div>
     }
 }
+
 
 @code {
     private IEnumerable<ShoppingCart> shoppingCart = new List<ShoppingCart>();
