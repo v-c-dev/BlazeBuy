@@ -1,7 +1,6 @@
 ﻿using BlazeBuy.Data;
 using BlazeBuy.Models;
 using BlazeBuy.Repositories.Interfaces;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazeBuy.Repositories
@@ -49,6 +48,17 @@ namespace BlazeBuy.Repositories
 
             _db.Products.Remove(entity);
             await _db.SaveChangesAsync(ct);
+        }
+
+        public async Task<bool> AdjustQuantityAsync(int productId, int delta, CancellationToken ct = default)
+        {
+            var affected = await _db.Products
+                .Where(p => p.Id == productId && p.Quantity + delta >= 0)
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(p => p.Quantity, p => p.Quantity + delta),
+                    ct);
+
+            return affected == 1;
         }
     }
 }

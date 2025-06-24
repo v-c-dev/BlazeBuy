@@ -24,9 +24,9 @@ namespace BlazeBuy.Repositories
         public Task<Order?> GetOrderByIdAsync(int id, CancellationToken ct = default) =>
             db.Orders
                .Include(o => o.Items)
-               .ThenInclude(oi => oi.Product)                         // eager-load products :contentReference[oaicite:0]{index=0}
-               .AsNoTracking()                                        // read-only boost :contentReference[oaicite:1]{index=1}
-               .FirstOrDefaultAsync(o => o.Id == id, ct);             // single row :contentReference[oaicite:2]{index=2}
+               .ThenInclude(oi => oi.Product) 
+               .AsNoTracking()
+               .FirstOrDefaultAsync(o => o.Id == id, ct);
 
         public Task<Order?> GetOrderBySessionIdAsync(string sessionId, CancellationToken ct = default) =>
             db.Orders
@@ -38,7 +38,6 @@ namespace BlazeBuy.Repositories
         public Task UpdateOrderStatusAsync(int id, OrderStatus status, string? paymentIntentId,
                                            CancellationToken ct = default)
         {
-            // bulk update without tracking :contentReference[oaicite:3]{index=3}
             return db.Orders
                      .Where(o => o.Id == id)
                      .ExecuteUpdateAsync(setters => setters
@@ -48,6 +47,6 @@ namespace BlazeBuy.Repositories
         }
         
         public Task<int> CountOrderByUserIdAsync(string userId, CancellationToken ct = default) =>
-            db.Orders.CountAsync(o => o.UserId == userId, ct);         // async count :contentReference[oaicite:5]{index=5}
+            db.Orders.CountAsync(o => o.UserId == userId, ct);
     }
 }

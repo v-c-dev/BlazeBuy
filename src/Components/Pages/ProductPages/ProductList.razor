@@ -46,13 +46,14 @@ else
                 <div style="overflow-x:auto;">
                     <RadzenDataGrid Data="@Products" AllowFiltering="true" AllowSorting="true"
                                     AllowPaging="true" PageSize="10" ColumnWidth="150px"
-                                    style="min-width:840px;">
+                                    style="min-width:840px; overflow: auto;">
                         <Columns>
                             <RadzenDataGridColumn Property="Name" Title="Name" />
-                            <RadzenDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" TextAlign="TextAlign.Right" />
+                            <RadzenDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" TextAlign="TextAlign.Left" Width="120px"/>
                             <RadzenDataGridColumn Property="Description" Title="Description" />
                             <RadzenDataGridColumn Property="Category.Name" Title="Category" />
                             <RadzenDataGridColumn Property="SpecialTag" Title="Special Tag" />
+                            <RadzenDataGridColumn Property="Quantity" Title="Qty" Width="85px"/>
                             <RadzenDataGridColumn Title="Actions" Width="160px" Sortable="false" Filterable="false">
                                 <Template Context="prd">
                                     <RadzenButton Icon="edit" Size="ButtonSize.Small"
@@ -87,10 +88,10 @@ else
         Products = await _productService.GetAllProductsAsync();
     }
 
-    private void PromptDelete(int id)
+    private async Task PromptDelete(int id)
     {
         _deleteId = id;
-        _js.InvokeVoidAsync("ShowConfirmationModal");
+        await _js.InvokeVoidAsync("ShowConfirmationModal");
     }
 
     private async Task DeleteConfirmed(bool confirmed)
@@ -99,13 +100,21 @@ else
 
         IsProcessing = true;
         StateHasChanged();
-    
-        await _productService.DeleteProductAsync(_deleteId);
 
-        await _js.ToastrSuccess("Product deleted successfully");
-
-        _deleteId = 0;
         await _js.InvokeVoidAsync("HideConfirmationModal");
+
+        bool ok = await _productService.DeleteProductAsync(_deleteId);
+        if(ok)
+        {
+            await _js.ToastrSuccess("Product deleted successfully");
+        }
+        else
+        {
+            await _js.ToastrError("Could not delete product");
+        }
+        
+        _deleteId = 0;
+        
         await LoadProductsAsync();
 
         IsProcessing = false;
