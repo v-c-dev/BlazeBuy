@@ -9,5 +9,6 @@ namespace BlazeBuy.Services.Interfaces
         Task<Product> CreateProductAsync(Product product, CancellationToken ct = default);
         Task UpdateProductAsync(Product product, CancellationToken ct = default);
         Task<bool> DeleteProductAsync(int id, CancellationToken ct = default);
+        Task<bool> AdjustQuantityAsync(int productId, int delta, CancellationToken ct = default);
     }
 }

@@ -6,9 +6,9 @@ namespace BlazeBuy.Repositories.Interfaces
     {
         Task<IReadOnlyList<Product>> GetAllProductsAsync(CancellationToken ct = default);
         Task<Product?> GetProductByIdAsync(int id, CancellationToken ct = default);
-
         Task<Product> CreateProductAsync(Product entity, CancellationToken ct = default);
         Task UpdateProductAsync(Product entity, CancellationToken ct = default);
         Task DeleteProductAsync(Product entity, CancellationToken ct = default);
+        Task<bool> AdjustQuantityAsync(int productId, int delta, CancellationToken ct = default);
     }
 }
