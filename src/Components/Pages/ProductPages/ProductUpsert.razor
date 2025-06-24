@@ -5,12 +5,11 @@
 @using BlazeBuy.Models
 @using BlazeBuy.Services.Interfaces
 
-
 @inject IProductService _productService
 @inject ICategoryService _categoryService
 @inject IWebHostEnvironment _webHostEnvironment
 @inject NavigationManager _nav
-@inject IJSRuntime _js        
+@inject IJSRuntime _js
 
 <PageTitle>@(Id > 0 ? "Update Product" : "Create Product")</PageTitle>
 
@@ -65,6 +64,17 @@ else
                         <RadzenLabel Text="Price" Component="Price" Style="color: var(--rz-text-color);" />
                         <RadzenNumeric @bind-Value="product.Price" Name="Price" Style="width:100%" Disabled="@IsProcessing" />
                         <RadzenRequiredValidator Component="Price" Text="Price required" Style="display:block" />
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Quantity in stock" Component="Qty" Style="color: var(--rz-text-color);" />
+                        <RadzenNumeric TValue="int"
+                                       @bind-Value="product.Quantity"
+                                       Name="Qty"
+                                       Min="0"
+                                       Style="width:100%"
+                                       Disabled="@IsProcessing" />
+                        <RadzenRequiredValidator Component="Qty" Text="Quantity required" Style="display:block" />
                     </RadzenFieldset>
 
                     <RadzenFieldset class="rz-mb-4">

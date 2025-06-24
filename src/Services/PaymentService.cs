@@ -4,8 +4,6 @@ using BlazeBuy.Repositories.Interfaces;
 using BlazeBuy.Services.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Stripe.Checkout;
-using System.Globalization;
-using System.Runtime.Intrinsics.Arm;
 
 namespace BlazeBuy.Services
 {
@@ -13,11 +11,16 @@ namespace BlazeBuy.Services
     {
         private readonly NavigationManager _navigationManager;
         private readonly IOrderService _orderService;
+        private readonly IProductRepository _productRepo;
 
-        public PaymentService(NavigationManager navigationManager, IOrderService orderService)
+        public PaymentService(
+            NavigationManager navigationManager,
+            IOrderService orderService,
+            IProductRepository productRepo)
         {
             _navigationManager = navigationManager;
             _orderService = orderService;
+            _productRepo = productRepo;
         }
 
         public async Task<Session> CreateStripeCheckoutSessionAsync(
@@ -29,7 +32,7 @@ namespace BlazeBuy.Services
                 PriceData = new SessionLineItemPriceDataOptions
                 {
                     Currency = "usd",
-                    UnitAmount = (long)(i.UnitPrice * 100),   // cents ✔
+                    UnitAmount = (long)(i.UnitPrice * 100),
                     ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
                         Name = i.ProductName
@@ -47,31 +50,40 @@ namespace BlazeBuy.Services
                 Metadata = new() { ["orderId"] = order.Id.ToString() }
             };
 
-            return await new SessionService().CreateAsync(options, null, ct);   // async ✔
+            return await new SessionService().CreateAsync(options, null, ct);
         }
 
         public async Task<Order> CheckOrderStatusAndUpdateOrder(string sessionId)
         {
             var service = new SessionService();
-            var session = service.Get(sessionId);
+            var session = await service.GetAsync(sessionId);
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4 && session.PaymentStatus != "paid"; i++)
             {
-                session = await service.GetAsync(sessionId);
-                if (session.PaymentStatus == "paid") break;
                 await Task.Delay(400);
+                session = await service.GetAsync(sessionId);
             }
 
             Order order = await _orderService.GetOrderBySessionIdAsync(sessionId);
-            if (session.PaymentStatus.ToLower() == "paid")
+
+            if (session.PaymentStatus.Equals("paid", StringComparison.OrdinalIgnoreCase))
             {
-                await _orderService.UpdateOrderStatusAsync(order.Id,
-                    OrderStatus.Approved,
-                    session.PaymentIntentId);
+                foreach (var item in order.Items)
+                {
+                    bool ok = await _productRepo.AdjustQuantityAsync(
+                                  item.ProductId, -item.Quantity);
+                    if (!ok)
+                        throw new InvalidOperationException(
+                            $"Not enough stock for {item.ProductName}");
+                }
+
+                await _orderService.UpdateOrderStatusAsync(
+                          order.Id, OrderStatus.Approved, session.PaymentIntentId);
                 order.Status = OrderStatus.Approved;
             }
 
             return order;
         }
     }
+
 }
