@@ -36,6 +36,7 @@ builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<ICouponService, BlazeBuy.Services.CouponService>();
 
 builder.Services.AddAuthentication(options =>
     {
