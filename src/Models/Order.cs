@@ -37,5 +37,8 @@ namespace BlazeBuy.Models
         public string Email { get; set; } = default!;
 
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+        public int? CouponId { get; set; }
+        public Coupon? Coupon { get; set; }
+        public decimal? DiscountAmount { get; set; }
     }
 }
