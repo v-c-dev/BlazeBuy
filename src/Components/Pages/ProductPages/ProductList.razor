@@ -54,7 +54,7 @@ else
                             <RadzenDataGridColumn Property="Category.Name" Title="Category" />
                             <RadzenDataGridColumn Property="SpecialTag" Title="Special Tag" />
                             <RadzenDataGridColumn Property="Quantity" Title="Qty" Width="85px"/>
-                            <RadzenDataGridColumn Title="Actions" Width="160px" Sortable="false" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="100px" Sortable="false" Filterable="false">
                                 <Template Context="prd">
                                     <RadzenButton Icon="edit" Size="ButtonSize.Small"
                                                   Click="@(() => _navigationManager.NavigateTo($"/products/update/{prd.Id}"))"
