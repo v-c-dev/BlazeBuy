@@ -25,7 +25,7 @@
 else
 {
     <RadzenCard class="rz-my-12 rz-mx-auto">
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-p-4">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-p-4">
             <RadzenStack Gap="0">
                 <RadzenText TextStyle="TextStyle.H2" class="rz-display-flex rz-mt-2 rz-my-0"><strong>Order List</strong></RadzenText>
             </RadzenStack>
@@ -38,13 +38,12 @@ else
                                 ShowPagingSummary="true" Data="@orders" ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.Or"
                                 SelectionMode="DataGridSelectionMode.Single">
                     <Columns>
-                        <RadzenDataGridColumn Property="Id" Filterable="true" Title="ID" Frozen="true" Width="30" />
-                        <RadzenDataGridColumn Property="Name" Title="Name" Frozen="true" />
-                        <RadzenDataGridColumn Property="PhoneNumber" Title="Phone Number" Width="160px" />
-                        <RadzenDataGridColumn Property="Email" Title="Email" Width="200px" />
+                        <RadzenDataGridColumn Property="Name" Title="Name" Width="130px"/>
+                        <RadzenDataGridColumn Property="PhoneNumber" Title="Phone Number" Width="140px" />
+                        <RadzenDataGridColumn Property="Email" Title="Email" Width="170px" />
                         <RadzenDataGridColumn Property="Total" Title="Order Total" FormatString="{0:C}" Width="120px" />
-                        <RadzenDataGridColumn Property="CreatedUtc" Title="Order Date" FormatString="{0:d}" Width="160px" />
-                        <RadzenDataGridColumn Property="Status" Title="Status" FormatString="{0:d}" Width="160px" />
+                        <RadzenDataGridColumn Property="CreatedUtc" Title="Date" FormatString="{0:d}" Width="90px" />
+                        <RadzenDataGridColumn Property="Status" Title="Status" FormatString="{0:d}" Width="90px" />
                         <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
                             <Template Context="orders">
                                 <RadzenButton Text="Details" ButtonStyle="ButtonStyle.Primary"

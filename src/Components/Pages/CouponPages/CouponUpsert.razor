@@ -1,0 +1,197 @@
+﻿@page "/coupons/create"
+@page "/coupons/update/{Id:int}"
+@rendermode InteractiveServer
+
+@using BlazeBuy.Models
+@using BlazeBuy.Models.Enums
+@using BlazeBuy.Services.Interfaces
+
+@inject ICouponService  _couponService
+@inject IProductService _productService
+@inject NavigationManager _nav
+@inject IJSRuntime _js
+
+<PageTitle>@(Id > 0 ? "Update Coupon" : "Create Coupon")</PageTitle>
+
+@if (IsProcessing)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+        <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Success"
+                                   Size="ProgressBarCircularSize.Large"
+                                   ShowValue="false"
+                                   Mode="ProgressBarMode.Indeterminate" />
+    </RadzenStack>
+}
+else
+{
+    <RadzenStack JustifyContent="JustifyContent.SpaceAround" class="rz-my-12 rz-mx-auto" Style="max-width:900px">
+        <RadzenCard>
+
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center"
+                         class="rz-p-4 rz-bg-primary rz-text-light">
+                <RadzenText TextStyle="TextStyle.H2">
+                    <strong>@((Id > 0) ? "Update" : "Create") Coupon</strong>
+                </RadzenText>
+            </RadzenStack>
+
+            <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8">
+                <RadzenTemplateForm Data="@coupon"
+                                    TItem="Coupon"
+                                    Submit="@SaveAsync"
+                                    InvalidSubmit="@(_ => {})">
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Code" Component="Code" Style="color: var(--rz-text-color);" />
+                        <RadzenTextBox @bind-Value="coupon.Code" Name="Code" Style="width:100%" Disabled="@IsProcessing" />
+                        <RadzenRequiredValidator Component="Code" Text="Code required" Style="display:block" />
+                    </RadzenFieldset>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-mb-4" Wrap="FlexWrap.Wrap">
+                        <RadzenFieldset Style="flex:1">
+                            <RadzenLabel Text="Scope" Component="Scope" Style="color: var(--rz-text-color);" />
+                            <RadzenDropDown TValue="CouponScope"
+                                            Data="@(Enum.GetValues<CouponScope>())"
+                                            @bind-Value="coupon.Scope"
+                                            Name="Scope"
+                                            Style="width:100%" Disabled="@IsProcessing" />
+                        </RadzenFieldset>
+
+                        <RadzenFieldset Style="flex:1">
+                            <RadzenLabel Text="Discount type" Component="Type" Style="color: var(--rz-text-color);" />
+                            <RadzenDropDown TValue="DiscountType"
+                                            Data="@(Enum.GetValues<DiscountType>())"
+                                            @bind-Value="coupon.Type"
+                                            Name="Kind"
+                                            Style="width:100%" Disabled="@IsProcessing" />
+                        </RadzenFieldset>
+                    </RadzenStack>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Value (%, or fixed)" Component="Val" Style="color: var(--rz-text-color);" />
+                        <RadzenNumeric TValue="decimal"
+                                       @bind-Value="coupon.Value"
+                                       Name="Val"
+                                       Min="0"
+                                       Style="width:100%" Disabled="@IsProcessing" />
+                        <RadzenRequiredValidator Component="Val" Text="Value required" Style="display:block" />
+                    </RadzenFieldset>
+
+                    <RadzenFieldset class="rz-mb-4">
+                        <RadzenLabel Text="Minimum order total" Component="MinTot"
+                                     Style="color: var(--rz-text-color);" />
+                        <RadzenNumeric TValue="decimal"
+                                       @bind-Value="coupon.MinimumOrderTotal"
+                                       Name="MinTot"
+                                       Min="0"
+                                       Style="width:100%" Disabled="@IsProcessing" />
+                    </RadzenFieldset>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-mb-4" Wrap="FlexWrap.Wrap">
+                        <RadzenFieldset Style="flex:1">
+                            <RadzenLabel Text="Expires" Component="Exp" Style="color: var(--rz-text-color);" />
+                            <RadzenDatePicker @bind-Value="coupon.ExpiresAt" Name="Exp"
+                                              Style="width:100%" Disabled="@IsProcessing" />
+                            <RadzenRequiredValidator Component="Exp" Text="Expiry required" Style="display:block" />
+                        </RadzenFieldset>
+
+                        <RadzenFieldset Style="flex:1">
+                            <RadzenLabel Text="Active" Style="color: var(--rz-text-color);" />
+                            <RadzenCheckBox @bind-Value="coupon.IsActive" Style="margin-left:.5rem" Disabled="@IsProcessing" />
+                        </RadzenFieldset>
+                    </RadzenStack>
+
+                    @if (coupon.Scope == CouponScope.Product)
+                    {
+                        <RadzenFieldset class="rz-mb-4">
+                            <RadzenLabel Text="Applies to products" Style="color: var(--rz-text-color);" />
+                            <RadzenDropDown Data="@products"
+                                            Multiple="true"
+                                            TextProperty="Name"
+                                            ValueProperty="Id"
+                                            Style="width:100%; max-height:200px"
+                                            @bind-Value="selectedProductIds"
+                                            Disabled="@IsProcessing"/>
+                            <RadzenRequiredValidator Text="Select at least one product"
+                                                     Visible="@(!selectedProductIds.Any())" />
+                        </RadzenFieldset>
+                    }
+
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" class="rz-mt-4">
+                        <RadzenButton Icon="save" Text="Save" ButtonStyle="ButtonStyle.Primary"
+                                      Type="ButtonType.Submit" Disabled="@IsProcessing" />
+                        <RadzenButton Icon="arrow_back" Text="Back to list" ButtonStyle="ButtonStyle.Secondary"
+                                      Disabled="@IsProcessing"
+                                      Click="@(() => _nav.NavigateTo("/coupons"))" />
+                    </RadzenStack>
+                </RadzenTemplateForm>
+            </RadzenCard>
+        </RadzenCard>
+    </RadzenStack>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool IsProcessing { get; set; } = true;
+    private Coupon coupon = new();
+    private IEnumerable<Product> products = Enumerable.Empty<Product>();
+    private List<int> selectedProductIds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await _productService.GetAllProductsAsync();
+
+        if (Id > 0)
+        {
+            coupon = await _couponService.GetAllCouponsAsync()
+                                         .ContinueWith(t => t.Result.FirstOrDefault(c => c.Id == Id)) ?? new();
+
+            selectedProductIds = coupon.Products.Select(p => p.ProductId).ToList();
+        }
+        else
+        {
+            coupon.ExpiresAt = DateTime.UtcNow.AddMonths(1);
+            coupon.IsActive  = true;
+        }
+
+        IsProcessing = false;
+    }
+
+    private async Task SaveAsync(Coupon _)
+    {
+        IsProcessing = true;
+        try
+        {
+            if (coupon.Scope == CouponScope.Product)
+            {
+                coupon.Products = selectedProductIds
+                    .Select(id => new CouponProduct { CouponId = coupon.Id, ProductId = id })
+                    .ToList();
+            }
+            else
+            {
+                coupon.Products.Clear();
+            }
+
+            if (Id > 0)
+            {
+                await _couponService.UpdateCouponAsync(coupon);
+                await _js.ToastrSuccess("Coupon updated successfully");
+            }
+            else
+            {
+                await _couponService.CreateCouponAsync(coupon);
+                await _js.ToastrSuccess("Coupon created successfully");
+            }
+
+            await Task.Delay(800);
+            _nav.NavigateTo("/coupons");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await _js.ToastrError("Error creating/updating coupon");
+            IsProcessing = false;
+        }
+    }
+}

@@ -4,11 +4,14 @@
 
 @using BlazeBuy.Models
 @using BlazeBuy.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
 
 @inject IProductService _productService
 @inject IJSRuntime _js
 
 @inject NavigationManager _navigationManager
+
+@attribute [Authorize]
 
 <ConfirmModal onModalConfirmed="DeleteConfirmed"
          Title="Are you sure you want to delete this product?"
@@ -49,12 +52,12 @@ else
                                     style="min-width:840px; overflow: auto;">
                         <Columns>
                             <RadzenDataGridColumn Property="Name" Title="Name" />
-                            <RadzenDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" TextAlign="TextAlign.Left" Width="120px"/>
+                            <RadzenDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" TextAlign="TextAlign.Left" Width="110px"/>
                             <RadzenDataGridColumn Property="Description" Title="Description" />
-                            <RadzenDataGridColumn Property="Category.Name" Title="Category" />
-                            <RadzenDataGridColumn Property="SpecialTag" Title="Special Tag" />
+                            <RadzenDataGridColumn Property="Category.Name" Title="Category" Width="100px"/>
+                            <RadzenDataGridColumn Property="SpecialTag" Title="Tag" Width="100px" />
                             <RadzenDataGridColumn Property="Quantity" Title="Qty" Width="85px"/>
-                            <RadzenDataGridColumn Title="Actions" Width="160px" Sortable="false" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="100px" Sortable="false" Filterable="false">
                                 <Template Context="prd">
                                     <RadzenButton Icon="edit" Size="ButtonSize.Small"
                                                   Click="@(() => _navigationManager.NavigateTo($"/products/update/{prd.Id}"))"

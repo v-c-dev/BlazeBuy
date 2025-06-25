@@ -28,6 +28,7 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, BlazeBuy.Services.ProductService>();
@@ -35,6 +36,7 @@ builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<ICouponService, BlazeBuy.Services.CouponService>();
 
 builder.Services.AddAuthentication(options =>
     {
