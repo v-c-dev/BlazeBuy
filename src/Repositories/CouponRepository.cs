@@ -21,7 +21,12 @@ namespace BlazeBuy.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Code == code && c.IsActive, ct);
         }
-            
+
+        public Task<Coupon?> GetCouponByIdAsync(int id, CancellationToken ct = default) =>
+            _db.Coupons
+                .Include(c => c.Products)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id, ct);
 
         public async Task<List<Coupon>> GetAllCouponsAsync(CancellationToken ct = default)
         {
@@ -42,6 +47,9 @@ namespace BlazeBuy.Repositories
 
         public async Task UpdateAsync(Coupon coupon, CancellationToken ct = default)
         {
+            var local = _db.Coupons.Local.FirstOrDefault(c => c.Id == coupon.Id);
+            if (local is not null) _db.Entry(local).State = EntityState.Detached;
+
             _db.Coupons.Update(coupon);
             await _db.SaveChangesAsync(ct);
         }
