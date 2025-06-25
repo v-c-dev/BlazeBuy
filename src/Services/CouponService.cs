@@ -21,12 +21,10 @@ namespace BlazeBuy.Services
 
         public async Task<bool> DeleteCouponAsync(int id, CancellationToken ct = default)
         {
-            var cpn = await repo.GetAllCouponsAsync(ct)
-                                .ContinueWith(t => t.Result.FirstOrDefault(c => c.Id == id), ct);
-
+            var cpn = await repo.GetCouponByIdAsync(id, ct);
             if (cpn is null) return false;
 
-            await repo.DeleteAsync(cpn, ct);
+            await repo.DeleteAsync(cpn, ct);   // repo handles detach/track conflicts
             return true;
         }
 

@@ -17,7 +17,7 @@ namespace BlazeBuy.Models
         public DateTime ExpiresAt { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public decimal? MinimumOrderTotal { get; set; }
+        public decimal MinimumOrderTotal { get; set; }
 
         public ICollection<CouponProduct> Products { get; set; } = [];
     }
