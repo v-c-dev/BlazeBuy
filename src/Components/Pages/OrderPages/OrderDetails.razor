@@ -2,12 +2,17 @@
 @using BlazeBuy.Models
 @using BlazeBuy.Models.Enums
 @using BlazeBuy.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@using BlazeBuy.Policies
 @rendermode InteractiveServer
 
 @inject IOrderService _orderService
 @inject IJSRuntime _jsRuntime
 @inject AuthenticationStateProvider _auth
 @inject NavigationManager _nav
+@inject IAuthorizationService AuthorizationService
+
+@attribute [Authorize]
 
 <PageTitle>Order Details</PageTitle>
 
@@ -20,14 +25,20 @@
                                    Mode="ProgressBarMode.Indeterminate" />
     </RadzenStack>
 }
+else if (!Authorized)
+{
+    <p class="text-danger">You are not authorized to view this order.</p>
+}
 else if (order is not null)
 {
     <RadzenCard Class="rz-my-10 rz-mx-auto" Style="max-width:950px">
-        <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" Class="rz-p-4">
-
-            <RadzenText Text="ORDER DETAILS"
-                        TextStyle="TextStyle.H4"
-                        Class="rz-text-success rz-text-center" />
+        <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" Class="rz-p-4" >
+            
+            <RadzenStack JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal">
+                <RadzenText Text="ORDER DETAILS"
+                            TextStyle="TextStyle.H4"
+                            Class="rz-text-success rz-text-center" />
+            </RadzenStack>
 
             
             <RadzenTable GridLines="DataGridGridLines.Horizontal"
@@ -47,7 +58,7 @@ else if (order is not null)
                     </RadzenTableRow>
 
                     <RadzenTableRow>
-                        <RadzenTableCell>Name</RadzenTableCell>
+                        <RadzenTableCell>Customer Name</RadzenTableCell>
                         <RadzenTableCell>@order.Name</RadzenTableCell>
                     </RadzenTableRow>
 
@@ -69,7 +80,10 @@ else if (order is not null)
             </RadzenTable>
 
             <RadzenCard class="rz-shadow-0 rz-border-radius-0 rz-p-8" Style="margin:1rem calc(-1*var(--rz-card-padding));">
-                <RadzenText Text="Items" TextStyle="TextStyle.H4" Class="rz-text-success" />
+                
+                <RadzenStack JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal">
+                    <RadzenText Text="Items" TextStyle="TextStyle.H4" Class="rz-text-success" />
+                </RadzenStack>
 
                 <RadzenStack JustifyContent="JustifyContent.Center">
                     <RadzenDataGrid Data="@order.Items" ColumnWidth="150px" AllowPaging="false" Class="rz-mt-2"
@@ -103,7 +117,7 @@ else if (order is not null)
                     </RadzenStack>
 
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left">
-                        <RadzenText Text="Total: " TextStyle="TextStyle.H6" Class="rz-text-success rz-mb-2" />
+                        <RadzenText Text="Total: " TextStyle="TextStyle.H6" Class="rz-text-success" />
                         <RadzenText Text="@(order.FinalTotal.ToString("C"))" TextStyle="TextStyle.H6" Class="rz-text-success" />
                     </RadzenStack>
                 }
@@ -149,6 +163,7 @@ else if (order is not null)
 
     private bool IsProcessing { get; set; } = true;
     private Order? order;
+    private bool Authorized { get; set; } = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -163,6 +178,20 @@ else if (order is not null)
     private async Task LoadOrderAsync()
     {
         order = await _orderService.GetOrderByIdAsync(Id);
+
+        if (order is null)
+        {
+            Authorized = false;
+            return;
+        }
+
+        var authState = await _auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var requirement = new OrderOwnerRequirement();
+        var result = await AuthorizationService.AuthorizeAsync(user, order, requirement);
+
+        Authorized = result.Succeeded;
     }
 
     private async Task ChangeStatus(OrderStatus newStatus)

@@ -5,11 +5,14 @@
 @using BlazeBuy.Models
 @using BlazeBuy.Models.Enums
 @using BlazeBuy.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
 
 @inject ICouponService  _couponService
 @inject IProductService _productService
 @inject NavigationManager _nav
 @inject IJSRuntime _js
+
+@attribute [Authorize]
 
 <PageTitle>@(Id > 0 ? "Update Coupon" : "Create Coupon")</PageTitle>
 
