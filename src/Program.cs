@@ -38,6 +38,10 @@ builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<ICouponService, BlazeBuy.Services.CouponService>();
 
+builder.Services
+    .AddSingleton<Stripe.CouponService>()
+    .AddSingleton<PromotionCodeService>();
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;

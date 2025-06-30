@@ -20,5 +20,7 @@ namespace BlazeBuy.Models
         public decimal MinimumOrderTotal { get; set; }
 
         public ICollection<CouponProduct> Products { get; set; } = [];
+        public string StripeCouponId { get; set; } = null!;
+        public string StripePromotionCodeId { get; set; } = null!;
     }
 }
