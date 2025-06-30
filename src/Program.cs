@@ -1,15 +1,17 @@
 using BlazeBuy.Components;
 using BlazeBuy.Components.Account;
 using BlazeBuy.Data;
-using BlazeBuy.Services.Interfaces;
+using BlazeBuy.Policies;
+using BlazeBuy.Repositories;
+using BlazeBuy.Repositories.Interfaces;
 using BlazeBuy.Services;
+using BlazeBuy.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Radzen.Blazor;
-using BlazeBuy.Repositories.Interfaces;
-using BlazeBuy.Repositories;
 using Radzen;
+using Radzen.Blazor;
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +54,13 @@ builder.Services.AddAuthentication(options =>
         options.ClientSecret = msSection["ClientSecret"];
     })
     .AddIdentityCookies();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("OrderOwnerPolicy", policy =>
+        policy.Requirements.Add(new OrderOwnerRequirement()));
+});
+builder.Services.AddSingleton<IAuthorizationHandler, OrderOwnerHandler>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
