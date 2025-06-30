@@ -47,10 +47,28 @@ namespace BlazeBuy.Repositories
 
         public async Task UpdateAsync(Coupon coupon, CancellationToken ct = default)
         {
-            var local = _db.Coupons.Local.FirstOrDefault(c => c.Id == coupon.Id);
-            if (local is not null) _db.Entry(local).State = EntityState.Detached;
+            var existing = await _db.Coupons
+                .Include(c => c.Products)
+                .FirstOrDefaultAsync(c => c.Id == coupon.Id, ct);
 
-            _db.Coupons.Update(coupon);
+            if (existing == null)
+                throw new InvalidOperationException("Coupon not found");
+
+            var toRemove = existing.Products
+                .Where(cp => !coupon.Products.Any(np => np.ProductId == cp.ProductId))
+                .ToList();
+            foreach (var r in toRemove)
+                _db.Remove(r);
+
+            var toAdd = coupon.Products
+                .Where(np => !existing.Products.Any(cp => cp.ProductId == np.ProductId))
+                .Select(np => new CouponProduct { CouponId = coupon.Id, ProductId = np.ProductId })
+                .ToList();
+            foreach (var a in toAdd)
+                existing.Products.Add(a);
+
+            _db.Entry(existing).CurrentValues.SetValues(coupon);
+
             await _db.SaveChangesAsync(ct);
         }
 
