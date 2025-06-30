@@ -63,7 +63,7 @@ namespace BlazeBuy.Services
 
         public async Task<bool> UpdateCartAsync(string userId, int productId, int deltaQty, CancellationToken ct = default)
         {
-            if (string.IsNullOrWhiteSpace(userId) || deltaQty == 0)  // nothing to do
+            if (string.IsNullOrWhiteSpace(userId) || deltaQty == 0)
                 return false;
 
             var cartItem = await db.ShoppingCarts
@@ -71,7 +71,7 @@ namespace BlazeBuy.Services
 
             if (cartItem is null)
             {
-                if (deltaQty <= 0) return false; // can’t decrement something that isn’t there
+                if (deltaQty <= 0) return false;
 
                 db.ShoppingCarts.Add(new ShoppingCart
                 {

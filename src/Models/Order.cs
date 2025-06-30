@@ -40,5 +40,8 @@ namespace BlazeBuy.Models
         public int? CouponId { get; set; }
         public Coupon? Coupon { get; set; }
         public decimal? DiscountAmount { get; set; }
+
+        [NotMapped]
+        public decimal FinalTotal => DiscountAmount.HasValue ? Math.Max(0, Total - DiscountAmount.Value) : Total;
     }
 }
