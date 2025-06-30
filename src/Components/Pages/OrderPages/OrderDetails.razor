@@ -89,13 +89,24 @@ else if (order is not null)
 
 
                 <RadzenStack Orientation="Orientation.Horizontal" Class="rz-mt-4">
-                    <RadzenText Text="Grand Total: " TextStyle="TextStyle.H6" Class="rz-text-success rz-text-end"/>
+                    <RadzenText Text="Subtotal: " TextStyle="TextStyle.H6" Class="rz-text-success rz-text-end rz-mb-2"/>
                     <RadzenText TextStyle="TextStyle.H6" Class="rz-text-success rz-text-end">
                         @order.Total
                     </RadzenText>
                 </RadzenStack>
                             
-                
+                @if (order.DiscountAmount.HasValue && order.DiscountAmount.Value > 0)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left">
+                        <RadzenText Text="Discount: " TextStyle="TextStyle.H6" Class="rz-text-danger rz-mb-2" />
+                        <RadzenText Text="@(order.DiscountAmount.Value.ToString("C"))" TextStyle="TextStyle.H6" Class="rz-text-danger" />
+                    </RadzenStack>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left">
+                        <RadzenText Text="Total: " TextStyle="TextStyle.H6" Class="rz-text-success rz-mb-2" />
+                        <RadzenText Text="@(order.FinalTotal.ToString("C"))" TextStyle="TextStyle.H6" Class="rz-text-success" />
+                    </RadzenStack>
+                }
 
             </RadzenCard>
 

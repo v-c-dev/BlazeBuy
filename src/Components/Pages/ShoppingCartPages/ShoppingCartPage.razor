@@ -5,17 +5,19 @@
 @using BlazeBuy.Services
 @using BlazeBuy.Services.Interfaces
 @using Microsoft.AspNetCore.Authorization
+
 @rendermode InteractiveServer
+
 @inject AuthenticationStateProvider _authenticationStateProvider
-@inject IJSRuntime _jsRuntime
+@inject IJSRuntime _js
 @inject NavigationManager _navigationManager
 @inject IOrderService _orderService
 @inject IShoppingCartService _cartService
 @inject SharedStateService _sharedStateService
 @inject PaymentService _paymentService
+@inject ICouponService _couponService
 
 @attribute [Authorize]
-
 
 <PageTitle>Shopping Cart</PageTitle>
 
@@ -35,9 +37,7 @@ else
         <div class="row w-100">
             <div class="col-lg-6 col-12">
                 <div class="container p-4 m-2">
-                    <h4 class="text-center text-success display-6">
-                        Cart Summary
-                    </h4>
+                    <h4 class="text-center text-success display-6">Cart Summary</h4>
 
                     @foreach (var item in shoppingCart)
                     {
@@ -49,16 +49,12 @@ else
                                 </div>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h4 class="">
-                                            @item.Product.Name
-                                        </h4>
-                                        <h4>
-                                            @item.Product.Price
-                                        </h4>
+                                        <h4>@item.Product.Name</h4>
+                                        <h4>@item.Product.Price</h4>
                                     </div>
                                     <div class="flex-fill">
                                         <h4 class="text-danger">
-                                            @((item.Product.Price * item.Quantity).ToString());
+                                            @((item.Product.Price * item.Quantity).ToString())
                                         </h4>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
@@ -73,13 +69,15 @@ else
                                                 <i class="bi bi-plus-circle-fill btn text-secondary"></i>
                                             </span>
                                         </div>
-                                        <button class="btn btn-danger" @onclick="() => UpdateCartItem(item.ProductId, -item.Quantity)">Remove</button>
+                                        <button class="btn btn-danger"
+                                                @onclick="() => UpdateCartItem(item.ProductId, -item.Quantity)">
+                                            Remove
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     }
-
                 </div>
             </div>
             <div class="col-lg-6 col-12 p-4">
@@ -87,44 +85,61 @@ else
                     <div class="card-header text-success text-center display-6">
                         Pickup Details
                     </div>
-                    <EditForm Model="order" FormName="CartForm" OnValidSubmit="ProcessOrderCreation">
+                    <EditForm Model="order" OnValidSubmit="ProcessOrderCreation">
                         <DataAnnotationsValidator />
                         <div class="card-body">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <InputText @bind-Value="order.Name" class="form-control" />
+                                <ValidationMessage For="@(() => order.Name)" />
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <InputText @bind-Value="order.Email" class="form-control" />
+                                <ValidationMessage For="@(() => order.Email)" />
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <InputText @bind-Value="order.PhoneNumber" class="form-control" />
+                                <ValidationMessage For="@(() => order.PhoneNumber)" />
+                            </div>
 
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label>Name</label>
-                                    <InputText @bind-Value="order.Name" type="text" class="form-control" />
-                                    <ValidationMessage For="@(() => order.Name)" />
-                                </div>
-                                <div class="form-group">
-                                    <label>Email</label>
-                                    <InputText @bind-Value="order.Email" type="email" class="form-control" />
-                                    <ValidationMessage For="@(() => order.Email)" />
-                                </div>
-                                <div class="form-group">
-                                    <label>Phone</label>
-                                    <InputText @bind-Value="order.PhoneNumber" type="text" class="form-control" />
-                                    <ValidationMessage For="@(() => order.PhoneNumber)" />
-                                </div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 my-3">
+                                <input class="form-control" style="width:160px"
+                                       placeholder="Promo code"
+                                       @bind-value="couponCode"
+                                       @bind-value:event="oninput"
+                                       disabled="@IsBusy" />
+                                <button class="btn btn-primary" @onclick="ApplyCoupon" type="button">
+                                    Apply
+                                </button>
+                                @if (appliedCoupon is not null)
+                                {
+                                    <span class="badge bg-success">@appliedCoupon.Code applied</span>
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            @onclick="ClearCoupon">
+                                        @appliedCoupon.Code <strong style="color:red;">×</strong>
+                                    </button>
+                                }
                             </div>
 
                             <div class="card mt-4 bg-light">
-                                <div class="card-body">
-                                    <h4>
-                                        Grand Total: @order.Total
+                                <h4>Subtotal: @order.Total.ToString("C")</h4>
+                                @if (discount > 0)
+                                {
+                                    <h4 class="text-success">
+                                        Coupon "@appliedCoupon!.Code": -@discount.ToString("C")
                                     </h4>
-                                    <h4>
-                                        No. of Items: @TotalItems
-                                    </h4>
-                                </div>
-
+                                }
+                                <h4 class="fw-bold">
+                                    Total: @((order.Total - discount).ToString("C"))
+                                </h4>
+                                <h4>Total items: @TotalItems</h4>
                             </div>
                         </div>
 
-                        <button class="btn btn-success m-4">
-                            Place Order
-                        </button>
+                        <button type="submit" class="btn btn-success m-4">Place Order</button>
                     </EditForm>
                 </div>
             </div>
@@ -142,19 +157,23 @@ else
     }
 }
 
-
 @code {
     private IEnumerable<ShoppingCart> shoppingCart = new List<ShoppingCart>();
     public bool IsProcessing { get; set; } = true;
 
     [SupplyParameterFromForm]
     public Order order { get; set; } = new Order();
-    private int TotalItems { get; set; } = 0;
+    private int TotalItems { get; set; }
+
+    private string? couponCode;
+    private Coupon? appliedCoupon;
+    private decimal discount;
+    private bool IsBusy;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        var user = (await _authenticationStateProvider
+                       .GetAuthenticationStateAsync()).User;
         order.Email = user.FindFirst(u => u.Type.Contains("emailaddress"))?.Value;
         order.UserId = user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value;
         order.Status = OrderStatus.Pending;
@@ -172,15 +191,16 @@ else
 
     private async Task LoadCart()
     {
-        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        shoppingCart = await _cartService.GetCartAsync(user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value);
+        var user = (await _authenticationStateProvider
+                       .GetAuthenticationStateAsync()).User;
+        shoppingCart = await _cartService.GetCartAsync(user
+            .FindFirst(u => u.Type.Contains("nameidentifier"))?.Value);
 
         order.Total = 0;
         TotalItems = 0;
         foreach (var item in shoppingCart)
         {
-            order.Total += (item.Product.Price * Convert.ToDecimal(item.Quantity));
+            order.Total += item.Product.Price * item.Quantity;
             TotalItems += item.Quantity;
         }
         order.Total = Math.Round(order.Total, 2);
@@ -188,28 +208,18 @@ else
 
     private async Task UpdateCartItem(int productId, int updateBy)
     {
-        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        var result = await _cartService.UpdateCartAsync(order.UserId, productId, updateBy);
-
+        var user = (await _authenticationStateProvider
+                       .GetAuthenticationStateAsync()).User;
+        var result = await _cartService.UpdateCartAsync(
+            order.UserId, productId, updateBy);
         await _sharedStateService.RefreshAsync(order.UserId);
 
         if (result)
-        {
-            if (updateBy > 0)
-            {
-                _jsRuntime?.ToastrSuccess("Product added to cart successfully");
-            }
-            else if (updateBy < 0)
-            {
-                _jsRuntime?.ToastrSuccess("Product removed from cart successfully");
-            }
-        }
+            _js?.ToastrSuccess(updateBy > 0
+                ? "Product added to cart successfully"
+                : "Product removed from cart successfully");
         else
-        {
-            _jsRuntime?.ToastrError("Error encountered");
-        }
+            _js?.ToastrError("Error encountered");
 
         await LoadCart();
     }
@@ -217,21 +227,77 @@ else
     private async Task ProcessOrderCreation()
     {
         IsProcessing = true;
-
         order.Items = CartExtensions.ToOrderItems(shoppingCart.ToList());
+
+        if (appliedCoupon is not null)
+        {
+            await RecalculateDiscount();
+            order.Total -= discount;
+        }
 
         try
         {
-            var session = await _paymentService.CreateStripeCheckoutSessionAsync(order);
+            var session = await _paymentService
+                .CreateStripeCheckoutSessionAsync(order);
             order.SessionId = session.Id;
-            await _orderService.UpdateOrderAsync(order);
-            order = await _orderService.CreateOrderAsync(order);
 
+            await _orderService.CreateOrderAsync(order);
             _navigationManager.NavigateTo(session.Url);
         }
         catch (Exception ex)
         {
-            await _jsRuntime.ToastrError($"Stripe error: {ex.Message}");
+            await _js.ToastrError($"Stripe error: {ex.Message}");
         }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async Task RecalculateDiscount()
+    {
+        if (appliedCoupon is null) return;
+        var draft = new Order { Items = CartExtensions.ToOrderItems(shoppingCart.ToList()) };
+        discount = await _couponService.CalculateDiscountAsync(appliedCoupon, draft);
+        order.CouponId = appliedCoupon.Id;
+        order.DiscountAmount = discount;
+    }
+
+    private async Task ApplyCoupon()
+    {
+        IsBusy = true;
+        var cpn = await _couponService.GetByCodeAsync(couponCode!.Trim());
+        if (cpn is null || cpn.ExpiresAt < DateTime.UtcNow)
+        {
+            await _js.ToastrError("Invalid or expired code");
+            IsBusy = false;
+            return;
+        }
+
+        appliedCoupon = cpn;
+        await RecalculateDiscount();
+        StateHasChanged();
+
+        if (discount == 0)
+        {
+            await _js.ToastrError("Coupon does not apply to your cart");
+            appliedCoupon = null;
+        }
+        else
+        {
+            await _js.ToastrSuccess($"Saved {discount:C}");
+        }
+
+        IsBusy = false;
+    }
+
+    private void ClearCoupon()
+    {
+        appliedCoupon = null;
+        discount = 0;
+        couponCode = null;
+        order.CouponId = null;
+        order.DiscountAmount = 0;
+        StateHasChanged();
     }
 }
